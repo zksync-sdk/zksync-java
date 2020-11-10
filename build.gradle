@@ -1,0 +1,45 @@
+plugins {
+    id 'java'
+}
+
+group = 'im.argent'
+sourceCompatibility = '1.8'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    // === Code Generation ===
+    compileOnly 'org.projectlombok:lombok:1.18.16'
+    annotationProcessor 'org.projectlombok:lombok:1.18.16'
+
+    // === DTO ===
+    implementation('org.modelmapper:modelmapper:1.1.0')
+
+    // === Utils ===
+    implementation('org.apache.commons:commons-lang3:3.7')
+    implementation('commons-validator:commons-validator:1.6')
+    implementation('org.jsoup:jsoup:1.11.3')
+
+    // === Http Client ===
+    implementation 'com.squareup.okhttp3:okhttp:4.8.0'
+
+    // === For Eth Signing ===
+    implementation 'org.web3j:crypto:5.0.0'
+
+    // === For Zk Signing ===
+    implementation 'io.zksync.sdk:zkscrypto:0.0.3'
+    implementation 'net.java.dev.jna:jna:5.6.0'
+    implementation 'org.scijava:native-lib-loader:2.3.4'
+
+    // === Test dependencies ===
+    testCompile 'junit:junit:4.13.1'
+}
