@@ -1,5 +1,6 @@
 package im.argent.zksync.domain.token;
 
+import im.argent.zksync.exception.ZkSyncException;
 import lombok.*;
 
 import java.util.Map;
@@ -21,7 +22,7 @@ public class Tokens {
                 .stream()
                 .filter(token -> token.getAddress().equals(tokenAddress))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("No token with address " + tokenAddress));
+                .orElseThrow(() -> new ZkSyncException("No token with address " + tokenAddress));
     }
 
     public Token getToken(String tokenIdentifier) {

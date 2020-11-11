@@ -11,6 +11,7 @@ import im.argent.zksync.domain.transaction.ChangePubKey;
 import im.argent.zksync.domain.transaction.Transfer;
 import im.argent.zksync.domain.transaction.Withdraw;
 import im.argent.zksync.domain.transaction.ZkSyncTransaction;
+import im.argent.zksync.exception.ZkSyncException;
 import im.argent.zksync.provider.DefaultProvider;
 import im.argent.zksync.provider.Provider;
 import im.argent.zksync.signer.EthSignature;
@@ -58,7 +59,7 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
         final SignedTransaction<ChangePubKey> signedTx = buildSignedChangePubKeyTx(fee, nonce, onchainAuth);
 
         if (pubKeyHash.equals(signedTx.getTransaction().getNewPkHash())) {
-            throw new RuntimeException("Current signing key is already set");
+            throw new ZkSyncException("Current signing key is already set");
         }
 
         return submitSignedTransaction(signedTx.getTransaction(), signedTx.getEthereumSignature(), false);

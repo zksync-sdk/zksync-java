@@ -1,6 +1,7 @@
 package im.argent.zksync.signer;
 
 import im.argent.zksync.domain.token.Token;
+import im.argent.zksync.exception.ZkSyncException;
 import org.web3j.utils.Numeric;
 
 import java.io.ByteArrayOutputStream;
@@ -76,7 +77,7 @@ public class SigningUtils {
     public static byte[] accountIdToBytes(Integer accountId) {
 
         if (accountId > MAX_NUMBER_OF_ACCOUNTS) {
-            throw new RuntimeException("Account number too large");
+            throw new ZkSyncException("Account number too large");
         }
 
         return intToByteArrayBE(accountId, 4);
@@ -88,7 +89,7 @@ public class SigningUtils {
         final byte[] addressBytes = Numeric.hexStringToByteArray(prefixlessAddress);
 
         if (addressBytes.length != 20) {
-            throw new RuntimeException("Address must be 20 bytes long");
+            throw new ZkSyncException("Address must be 20 bytes long");
         }
 
         return addressBytes;
@@ -96,7 +97,7 @@ public class SigningUtils {
 
     public static byte[] tokenIdToBytes(Integer tokenId) {
         if (tokenId < 0) {
-            throw new RuntimeException("Negative tokenId");
+            throw new ZkSyncException("Negative tokenId");
         }
 
         if (tokenId >= MAX_NUMBER_OF_TOKENS) {
@@ -124,7 +125,7 @@ public class SigningUtils {
 
             return outputStream.toByteArray();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new ZkSyncException(e);
         }
 
     }
@@ -183,7 +184,7 @@ public class SigningUtils {
         final BigInteger maxMantissa = BigInteger.valueOf(2).pow(mantissaBits).subtract(BigInteger.ONE);
 
         if (value.compareTo(maxMantissa.multiply(maxExponent)) > 0) {
-            throw new RuntimeException("Integer is too big");
+            throw new ZkSyncException("Integer is too big");
         }
 
         int exponent = 0;
@@ -216,7 +217,7 @@ public class SigningUtils {
                                                     int mantissaBits,
                                                     int expBase) {
         if (decimalBytes.length * 8 != mantissaBits + expBits) {
-            throw new RuntimeException("Decimal unpacking, incorrect input length");
+            throw new ZkSyncException("Decimal unpacking, incorrect input length");
         }
 
         final Bits bits = bytesToBitsBE(decimalBytes).reverse();
@@ -266,7 +267,7 @@ public class SigningUtils {
 
     private static byte[] bitsIntoBytesInBEOrder(Bits bits) {
         if (bits.size() % 8 != 0) {
-            throw new RuntimeException("Wrong number of bits to pack");
+            throw new ZkSyncException("Wrong number of bits to pack");
         }
 
         int numBytes = bits.size() / 8;
@@ -406,7 +407,7 @@ public class SigningUtils {
             return address.substring(5);
         }
 
-        throw new RuntimeException("ETH address must start with '0x' and PubKeyHash must start with 'sync:'");
+        throw new ZkSyncException("ETH address must start with '0x' and PubKeyHash must start with 'sync:'");
     }
 
     private static byte[] intToByteArrayBE(int value, int size) {

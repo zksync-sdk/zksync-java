@@ -1,10 +1,14 @@
 package im.argent.zksync.transport;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import im.argent.zksync.exception.ZkSyncException;
 import okhttp3.*;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 
@@ -56,11 +60,14 @@ public class HttpTransport implements ZkSyncTransport {
             final ZkSyncResponse<JsonNode> resultJson = objectMapper.readValue(responseString,
                     new TypeReference<ZkSyncResponse<JsonNode>>() {});
 
+            if (resultJson.getError() != null) {
+                throw new ZkSyncException(resultJson.getError());
+            }
+
             return objectMapper.readValue(resultJson.getResult().toString(), returntype);
 
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new ZkSyncException("There was an error when sending the request", e);
         }
     }
-
 }

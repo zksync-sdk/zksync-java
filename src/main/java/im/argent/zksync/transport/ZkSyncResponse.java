@@ -18,4 +18,6 @@ public class ZkSyncResponse<T> {
     private String jsonrpc;
 
     private T result;
+
+    private ZkSyncError error;
 }

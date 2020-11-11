@@ -1,5 +1,6 @@
 package im.argent.zksync.provider;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,10 +11,12 @@ import im.argent.zksync.domain.state.AccountState;
 import im.argent.zksync.domain.token.Token;
 import im.argent.zksync.domain.token.Tokens;
 import im.argent.zksync.domain.transaction.ZkSyncTransaction;
+import im.argent.zksync.exception.ZkSyncException;
 import im.argent.zksync.signer.EthSignature;
 import im.argent.zksync.transport.ZkSyncTransport;
 import lombok.AllArgsConstructor;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
@@ -26,14 +29,10 @@ public class DefaultProvider implements Provider {
     @Override
     public AccountState getState(String accountAddress) {
 
-        try {
-            final AccountState response = transport.send("account_info",
-                    Collections.singletonList(accountAddress), AccountState.class);
+        final AccountState response = transport.send("account_info",
+                Collections.singletonList(accountAddress), AccountState.class);
 
-            return response;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        return response;
     }
 
     @Override
@@ -51,14 +50,15 @@ public class DefaultProvider implements Provider {
                     feeRequest.getAddress(),
                     feeRequest.getTokenIdentifier()), TransactionFeeDetails.class);
 
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new ZkSyncException(e);
         }
     }
 
     @Override
     public Tokens getTokens() {
         try {
+            //TODO fix this parsing (this ends up being triple parsed!)
             final JsonNode responseNode = transport.send("tokens", Collections.emptyList(), JsonNode.class);
 
             final Map<String, Token> response = new ObjectMapper().readValue(responseNode.toString(),
@@ -68,8 +68,8 @@ public class DefaultProvider implements Provider {
                     .builder()
                     .tokens(response)
                     .build();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new ZkSyncException(e);
         }
     }
 

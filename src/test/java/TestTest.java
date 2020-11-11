@@ -21,7 +21,7 @@ public class TestTest {
     private static final byte[] ZK_KEY_SEED = Hash.sha3(new byte[] {Integer.valueOf(1).byteValue()});
 
     @Test
-    public void test() throws ZksSeedTooShortException, JsonProcessingException {
+    public void testSetSigningKey() throws JsonProcessingException {
         final EthSigner ethSigner = EthSigner.fromMnemonic(MNEMONIC);
         final ZkSigner zkSigner = ZkSigner.fromSeed(ZK_KEY_SEED);
 
@@ -72,7 +72,7 @@ public class TestTest {
         final ZkSyncWallet wallet = ZkSyncWallet
                 .build(ethSigner, zkSigner, new HttpTransport("https://rinkeby-api.zksync.io/jsrpc"));
 
-        final String token = "0x0000000000000000000000000000000000000000";
+        final String token = "0x000000000000000000000000000000000000000000";
         final TransactionFeeDetails feeDetails = wallet.getTransactionFee(
                 TransactionType.WITHDRAW, ethSigner.getAddress(), token);
 

@@ -1,6 +1,7 @@
 package im.argent.zksync.signer;
 
 import im.argent.zksync.domain.token.Token;
+import im.argent.zksync.exception.ZkSyncException;
 import org.web3j.crypto.Bip32ECKeyPair;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.MnemonicUtils;
@@ -70,7 +71,7 @@ public class EthSigner {
             output.write(sig.getS());
             output.write(sig.getV());
         } catch (IOException e) {
-            throw new RuntimeException("Error when creating ETH signature", e);
+            throw new ZkSyncException("Error when creating ETH signature", e);
         }
 
         final String signature = Numeric.toHexString(output.toByteArray());

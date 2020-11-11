@@ -4,6 +4,7 @@ import im.argent.zksync.domain.Signature;
 import im.argent.zksync.domain.transaction.ChangePubKey;
 import im.argent.zksync.domain.transaction.Transfer;
 import im.argent.zksync.domain.transaction.Withdraw;
+import im.argent.zksync.exception.ZkSyncException;
 import io.zksync.sdk.zkscrypto.lib.ZksCrypto;
 import io.zksync.sdk.zkscrypto.lib.entity.ZksPackedPublicKey;
 import io.zksync.sdk.zkscrypto.lib.entity.ZksPrivateKey;
@@ -51,7 +52,7 @@ public class ZkSigner {
 
             return new ZkSigner(privateKey, crypto);
         } catch (ZksSeedTooShortException e) {
-            throw new RuntimeException(e);
+            throw new ZkSyncException(e);
         }
     }
 
@@ -69,7 +70,7 @@ public class ZkSigner {
                     .signature(Numeric.toHexString(signature).substring(2))
                     .build();
         } catch (ZksMusigTooLongException e) {
-            throw new RuntimeException(e);
+            throw new ZkSyncException(e);
         }
     }
 
@@ -102,7 +103,7 @@ public class ZkSigner {
 
             return changePubKey;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new ZkSyncException(e);
         }
     }
 
@@ -130,7 +131,7 @@ public class ZkSigner {
 
             return transfer;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new ZkSyncException(e);
         }
     }
 
@@ -158,7 +159,7 @@ public class ZkSigner {
 
             return withdraw;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new ZkSyncException(e);
         }
     }
 }
