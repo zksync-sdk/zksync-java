@@ -2,6 +2,7 @@ package im.argent.zksync.signer;
 
 import im.argent.zksync.domain.Signature;
 import im.argent.zksync.domain.transaction.ChangePubKey;
+import im.argent.zksync.domain.transaction.ForcedExit;
 import im.argent.zksync.domain.transaction.Transfer;
 import im.argent.zksync.domain.transaction.Withdraw;
 import im.argent.zksync.exception.ZkSyncException;
@@ -158,6 +159,28 @@ public class ZkSigner {
             withdraw.setSignature(signature);
 
             return withdraw;
+        } catch (IOException e) {
+            throw new ZkSyncException(e);
+        }
+    }
+
+    public ForcedExit signForcedExit(ForcedExit forcedExit) {
+        try {
+            final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            outputStream.write(0x08);
+            outputStream.write(accountIdToBytes(forcedExit.getInitiatorAccountId()));
+            outputStream.write(addressToBytes(forcedExit.getTarget()));
+            outputStream.write(tokenIdToBytes(forcedExit.getToken()));
+            outputStream.write(feeToBytes(forcedExit.getFeeInteger()));
+            outputStream.write(nonceToBytes(forcedExit.getNonce()));
+
+            byte[] message = outputStream.toByteArray();
+
+            final Signature signature = sign(message);
+
+            forcedExit.setSignature(signature);
+
+            return forcedExit;
         } catch (IOException e) {
             throw new ZkSyncException(e);
         }

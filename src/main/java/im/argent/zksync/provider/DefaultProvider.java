@@ -1,6 +1,5 @@
 package im.argent.zksync.provider;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,7 +38,7 @@ public class DefaultProvider implements Provider {
     public TransactionFeeDetails getTransactionFee(TransactionFeeRequest feeRequest) {
         try {
 
-            Object transactionType = feeRequest.getTransactionType().getIdentifier();
+            Object transactionType = feeRequest.getTransactionType().getFeeIdentifier();
 
             if (feeRequest.getTransactionType() == TransactionType.CHANGE_PUB_KEY) {
                 transactionType = new ObjectMapper().readValue("{ \"ChangePubKey\": { \"onchainPubkeyAuth\": false }}", JsonNode.class);

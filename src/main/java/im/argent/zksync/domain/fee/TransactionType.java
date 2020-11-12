@@ -8,16 +8,18 @@ public enum TransactionType {
 
     FAST_WITHDRAW("FastWithdraw"),
 
-    CHANGE_PUB_KEY("ChangePubKey");
+    CHANGE_PUB_KEY("ChangePubKey"),
 
-    private String identifier;
+    FORCED_EXIT("Withdraw");
 
-    TransactionType(String identifier) {
-        this.identifier = identifier;
+    private String feeIdentifier;
+
+    TransactionType(String feeIdentifier) {
+        this.feeIdentifier = feeIdentifier;
     }
 
-    public String getIdentifier() {
-        return identifier;
+    public String getFeeIdentifier() {
+        return feeIdentifier;
     }
 
 }

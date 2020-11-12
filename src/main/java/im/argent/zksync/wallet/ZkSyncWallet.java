@@ -5,6 +5,7 @@ import im.argent.zksync.domain.fee.TransactionFeeDetails;
 import im.argent.zksync.domain.fee.TransactionFeeRequest;
 import im.argent.zksync.domain.fee.TransactionType;
 import im.argent.zksync.domain.state.AccountState;
+import im.argent.zksync.provider.Provider;
 import im.argent.zksync.signer.EthSigner;
 import im.argent.zksync.signer.ZkSigner;
 import im.argent.zksync.transport.ZkSyncTransport;
@@ -28,10 +29,14 @@ public interface ZkSyncWallet {
                         Integer nonce,
                         boolean fastProcessing);
 
+    String syncForcedExit(String target, String tokenIdentifier, BigInteger fee, Integer nonce);
+
     AccountState getState();
 
     TransactionFeeDetails getTransactionFee(TransactionType type, String tokenIdentifier);
 
     TransactionFeeDetails getTransactionFee(TransactionType type, String address, String tokenIdentifier);
+
+    Provider getProvider();
 }
 

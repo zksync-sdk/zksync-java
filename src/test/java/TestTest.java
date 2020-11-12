@@ -85,6 +85,25 @@ public class TestTest {
     }
 
     @Test
+    public void testForcedExit() throws JsonProcessingException {
+        final EthSigner ethSigner = EthSigner.fromMnemonic(MNEMONIC);
+        final ZkSigner zkSigner = ZkSigner.fromSeed(ZK_KEY_SEED);
+
+        final String target = EthSigner.fromMnemonic(MNEMONIC, 1).getAddress();
+
+        final ZkSyncWallet wallet = ZkSyncWallet
+                .build(ethSigner, zkSigner, new HttpTransport("https://rinkeby-api.zksync.io/jsrpc"));
+
+        final String token = "0x0000000000000000000000000000000000000000";
+        final TransactionFeeDetails feeDetails = wallet.getTransactionFee(
+                TransactionType.FORCED_EXIT, target, token);
+
+        wallet.syncForcedExit(target, token, feeDetails.getTotalFeeInteger(), null);
+
+        System.out.println(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(wallet.getProvider().getState(target)));
+    }
+
+    @Test
     public void getState() throws JsonProcessingException {
         final EthSigner ethSigner = EthSigner.fromMnemonic(MNEMONIC);
         final ZkSigner zkSigner = ZkSigner.fromSeed(ZK_KEY_SEED);

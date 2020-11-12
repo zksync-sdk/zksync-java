@@ -7,10 +7,7 @@ import im.argent.zksync.domain.fee.TransactionType;
 import im.argent.zksync.domain.state.AccountState;
 import im.argent.zksync.domain.token.Token;
 import im.argent.zksync.domain.token.Tokens;
-import im.argent.zksync.domain.transaction.ChangePubKey;
-import im.argent.zksync.domain.transaction.Transfer;
-import im.argent.zksync.domain.transaction.Withdraw;
-import im.argent.zksync.domain.transaction.ZkSyncTransaction;
+import im.argent.zksync.domain.transaction.*;
 import im.argent.zksync.exception.ZkSyncException;
 import im.argent.zksync.provider.DefaultProvider;
 import im.argent.zksync.provider.Provider;
@@ -95,6 +92,20 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
     }
 
     @Override
+    public String syncForcedExit(String target, String tokenIdentifier, BigInteger fee, Integer nonce) {
+        final Integer nonceToUse = nonce == null ? getNonce() : nonce;
+
+        final BigInteger feeToUse = fee == null ?
+                getTransactionFee(TransactionType.FORCED_EXIT, target, tokenIdentifier).getTotalFeeInteger() : fee;
+
+        final SignedTransaction<ForcedExit> signedForcedExit =
+                buildSignedForcedExitTx(target, tokenIdentifier, feeToUse, nonceToUse);
+
+        return submitSignedTransaction(
+                signedForcedExit.getTransaction(), signedForcedExit.getEthereumSignature(), false);
+    }
+
+    @Override
     public AccountState getState() {
         return provider.getState(ethSigner.getAddress());
     }
@@ -143,7 +154,11 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
         return new SignedTransaction(zkSigner.signChangePubKey(changePubKey), ethSignature);
     }
 
-    private SignedTransaction<Transfer> buildSignedTransferTx(String to, String tokenIdentifier, BigInteger amount, BigInteger fee, Integer nonce) {
+    private SignedTransaction<Transfer> buildSignedTransferTx(String to,
+                                                              String tokenIdentifier,
+                                                              BigInteger amount,
+                                                              BigInteger fee,
+                                                              Integer nonce) {
         if (zkSigner == null) {
             throw new Error("ZKSync signer is required for current pubkey calculation.");
         }
@@ -195,6 +210,30 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
                 to, accountId, nonce, amount, provider.getTokens().getToken(tokenIdentifier), fee);
 
         return new SignedTransaction<>(zkSigner.signWithdraw(withdraw), ethSignature);
+    }
+
+    private SignedTransaction<ForcedExit> buildSignedForcedExitTx(String target,
+                                                                String tokenIdentifier,
+                                                                BigInteger fee,
+                                                                Integer nonce) {
+        if (zkSigner == null) {
+            throw new Error("ZKSync signer is required for current pubkey calculation.");
+        }
+
+        final Tokens tokens = provider.getTokens();
+
+        final Token token = tokens.getToken(tokenIdentifier);
+
+        final ForcedExit forcedExit = ForcedExit
+                .builder()
+                .initiatorAccountId(accountId)
+                .target(target)
+                .token(token.getId())
+                .nonce(nonce)
+                .fee(fee.toString())
+                .build();
+
+        return new SignedTransaction<>(zkSigner.signForcedExit(forcedExit), null);
     }
 
     private String submitSignedTransaction(ZkSyncTransaction signedTransaction,
