@@ -2,7 +2,7 @@ plugins {
     id 'java'
 }
 
-group = 'im.argent'
+group = 'io.zksync'
 sourceCompatibility = '1.8'
 
 configurations {
