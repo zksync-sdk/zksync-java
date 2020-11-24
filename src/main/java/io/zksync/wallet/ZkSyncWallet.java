@@ -2,7 +2,6 @@ package io.zksync.wallet;
 
 import io.zksync.domain.fee.TransactionFee;
 import io.zksync.domain.fee.TransactionFeeDetails;
-import io.zksync.domain.fee.TransactionFeeRequest;
 import io.zksync.domain.fee.TransactionType;
 import io.zksync.domain.state.AccountState;
 import io.zksync.provider.Provider;

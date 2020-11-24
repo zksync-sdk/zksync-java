@@ -151,7 +151,7 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
             changePubKey.setEthSignature(ethSignature.getSignature());
         }
 
-        return new SignedTransaction(zkSigner.signChangePubKey(changePubKey), ethSignature);
+        return new SignedTransaction<>(zkSigner.signChangePubKey(changePubKey), ethSignature);
     }
 
     private SignedTransaction<Transfer> buildSignedTransferTx(String to,

@@ -4,7 +4,6 @@ import io.zksync.domain.transaction.ZkSyncTransaction;
 import io.zksync.signer.EthSignature;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
 
 @Getter
