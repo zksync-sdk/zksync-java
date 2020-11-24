@@ -6,9 +6,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.zksync.domain.fee.TransactionFeeDetails;
 import io.zksync.domain.fee.TransactionFeeRequest;
 import io.zksync.domain.fee.TransactionType;
+import io.zksync.domain.operation.EthOpInfo;
 import io.zksync.domain.state.AccountState;
 import io.zksync.domain.token.Token;
 import io.zksync.domain.token.Tokens;
+import io.zksync.domain.transaction.TransactionDetails;
 import io.zksync.domain.transaction.ZkSyncTransaction;
 import io.zksync.exception.ZkSyncException;
 import io.zksync.signer.EthSignature;
@@ -28,8 +30,8 @@ public class DefaultProvider implements Provider {
     @Override
     public AccountState getState(String accountAddress) {
 
-        final AccountState response = transport.send("account_info",
-                Collections.singletonList(accountAddress), AccountState.class);
+        final AccountState response = transport.send("account_info", Collections.singletonList(accountAddress),
+                AccountState.class);
 
         return response;
     }
@@ -41,13 +43,13 @@ public class DefaultProvider implements Provider {
             Object transactionType = feeRequest.getTransactionType().getFeeIdentifier();
 
             if (feeRequest.getTransactionType() == TransactionType.CHANGE_PUB_KEY) {
-                transactionType = new ObjectMapper().readValue("{ \"ChangePubKey\": { \"onchainPubkeyAuth\": false }}", JsonNode.class);
+                transactionType = new ObjectMapper().readValue("{ \"ChangePubKey\": { \"onchainPubkeyAuth\": false }}",
+                        JsonNode.class);
             }
 
-            return transport.send("get_tx_fee", Arrays.asList(
-                    transactionType,
-                    feeRequest.getAddress(),
-                    feeRequest.getTokenIdentifier()), TransactionFeeDetails.class);
+            return transport.send("get_tx_fee",
+                    Arrays.asList(transactionType, feeRequest.getAddress(), feeRequest.getTokenIdentifier()),
+                    TransactionFeeDetails.class);
 
         } catch (IOException e) {
             throw new ZkSyncException(e);
@@ -57,16 +59,14 @@ public class DefaultProvider implements Provider {
     @Override
     public Tokens getTokens() {
         try {
-            //TODO fix this parsing (this ends up being triple parsed!)
+            // TODO fix this parsing (this ends up being triple parsed!)
             final JsonNode responseNode = transport.send("tokens", Collections.emptyList(), JsonNode.class);
 
             final Map<String, Token> response = new ObjectMapper().readValue(responseNode.toString(),
-                    new TypeReference<Map<String, Token>>() {});
+                    new TypeReference<Map<String, Token>>() {
+                    });
 
-            return Tokens
-                    .builder()
-                    .tokens(response)
-                    .build();
+            return Tokens.builder().tokens(response).build();
         } catch (IOException e) {
             throw new ZkSyncException(e);
         }
@@ -74,11 +74,32 @@ public class DefaultProvider implements Provider {
 
     @Override
     public String submitTx(ZkSyncTransaction tx, EthSignature ethereumSignature, boolean fastProcessing) {
-        final String responseBody = transport.send("tx_submit",
-                Arrays.asList(tx, ethereumSignature, fastProcessing), String.class);
-
-        System.out.println(responseBody);
+        final String responseBody = transport.send("tx_submit", Arrays.asList(tx, ethereumSignature, fastProcessing),
+                String.class);
 
         return responseBody;
+    }
+
+    @Override
+    public String contractAddress() {
+        final String contractAddress = transport.send("contract_address", Collections.emptyList(), String.class);
+
+        return contractAddress;
+    }
+
+    @Override
+    public TransactionDetails getTransactionDetails(String txHash) {
+        final TransactionDetails response = transport.send("tx_info", Collections.singletonList(txHash),
+                TransactionDetails.class);
+
+        return response;
+    }
+
+    @Override
+    public EthOpInfo getEthOpInfo(Integer priority) {
+        final EthOpInfo response = transport.send("ethop_info", Collections.singletonList(priority),
+                EthOpInfo.class);
+
+        return response;
     }
 }
