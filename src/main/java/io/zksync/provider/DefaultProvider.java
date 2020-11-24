@@ -3,6 +3,8 @@ package io.zksync.provider;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.zksync.domain.contract.ContractAddress;
 import io.zksync.domain.fee.TransactionFeeDetails;
 import io.zksync.domain.fee.TransactionFeeRequest;
 import io.zksync.domain.fee.TransactionType;
@@ -81,8 +83,8 @@ public class DefaultProvider implements Provider {
     }
 
     @Override
-    public String contractAddress() {
-        final String contractAddress = transport.send("contract_address", Collections.emptyList(), String.class);
+    public ContractAddress contractAddress() {
+        final ContractAddress contractAddress = transport.send("contract_address", Collections.emptyList(), ContractAddress.class);
 
         return contractAddress;
     }

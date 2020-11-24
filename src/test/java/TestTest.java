@@ -1,13 +1,16 @@
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.zksync.domain.contract.ContractAddress;
 import io.zksync.domain.fee.TransactionFee;
 import io.zksync.domain.fee.TransactionFeeDetails;
 import io.zksync.domain.fee.TransactionType;
+import io.zksync.provider.DefaultProvider;
+import io.zksync.provider.Provider;
 import io.zksync.signer.EthSigner;
 import io.zksync.signer.ZkSigner;
 import io.zksync.transport.HttpTransport;
 import io.zksync.wallet.ZkSyncWallet;
-import io.zksync.sdk.zkscrypto.lib.exception.ZksSeedTooShortException;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.web3j.crypto.Hash;
@@ -112,5 +115,15 @@ public class TestTest {
                 .build(ethSigner, zkSigner, new HttpTransport("https://rinkeby-api.zksync.io/jsrpc"));
 
         System.out.println(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(wallet.getState()));
+    }
+
+    @Test
+    public void getContractAddress() throws JsonProcessingException {
+        final Provider provider = new DefaultProvider(new HttpTransport("https://rinkeby-api.zksync.io/jsrpc"));
+
+        final ContractAddress contractAddress = provider.contractAddress();
+
+        System.out.println(contractAddress);
+        
     }
 }

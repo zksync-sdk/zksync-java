@@ -1,5 +1,6 @@
 package io.zksync.provider;
 
+import io.zksync.domain.contract.ContractAddress;
 import io.zksync.domain.fee.TransactionFeeDetails;
 import io.zksync.domain.fee.TransactionFeeRequest;
 import io.zksync.domain.operation.EthOpInfo;
@@ -21,7 +22,7 @@ public interface Provider {
 
     TransactionDetails getTransactionDetails(String txHash);
 
-    String contractAddress();
+    ContractAddress contractAddress();
 
     EthOpInfo getEthOpInfo(Integer priority);
 }
