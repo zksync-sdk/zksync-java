@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import io.zksync.domain.contract.ContractAddress;
 import io.zksync.domain.fee.TransactionFeeDetails;
 import io.zksync.domain.fee.TransactionFeeRequest;
@@ -22,6 +24,7 @@ import lombok.AllArgsConstructor;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 @AllArgsConstructor
@@ -78,6 +81,12 @@ public class DefaultProvider implements Provider {
     public String submitTx(ZkSyncTransaction tx, EthSignature ethereumSignature, boolean fastProcessing) {
         final String responseBody = transport.send("tx_submit", Arrays.asList(tx, ethereumSignature, fastProcessing),
                 String.class);
+
+        return responseBody;
+    }
+
+    public List<String> submitTxBatch(List<Pair<ZkSyncTransaction, EthSignature>> txs, EthSignature ethereumSignature) {
+        final List<String> responseBody = transport.send("submit_txs_batch", Arrays.asList(txs, ethereumSignature), new TypeReference<List<String>>(){});
 
         return responseBody;
     }

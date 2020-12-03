@@ -33,6 +33,29 @@ public class HttpTransport implements ZkSyncTransport {
     @Override
     public <T> T send(String method, List<Object> params, Class<T> returntype) {
         try {
+            ZkSyncResponse<JsonNode> resultJson = send(method, params);
+
+            return objectMapper.readValue(resultJson.getResult().toString(), returntype);
+
+        } catch (IOException e) {
+            throw new ZkSyncException("There was an error when sending the request", e);
+        }
+    }
+
+    @Override
+    public <T> T send(String method, List<Object> params, TypeReference<T> returntype) {
+        try {
+            ZkSyncResponse<JsonNode> resultJson = send(method, params);
+
+            return objectMapper.readValue(resultJson.getResult().toString(), returntype);
+
+        } catch (IOException e) {
+            throw new ZkSyncException("There was an error when sending the request", e);
+        }
+    }
+
+    private ZkSyncResponse<JsonNode> send(String method, List<Object> params) {
+        try {
             final ZkSyncRequest zkRequest = ZkSyncRequest
                     .builder()
                     .method(method)
@@ -55,13 +78,10 @@ public class HttpTransport implements ZkSyncTransport {
 
             final ZkSyncResponse<JsonNode> resultJson = objectMapper.readValue(responseString,
                     new TypeReference<ZkSyncResponse<JsonNode>>() {});
-
             if (resultJson.getError() != null) {
                 throw new ZkSyncException(resultJson.getError());
             }
-
-            return objectMapper.readValue(resultJson.getResult().toString(), returntype);
-
+            return resultJson;
         } catch (IOException e) {
             throw new ZkSyncException("There was an error when sending the request", e);
         }
