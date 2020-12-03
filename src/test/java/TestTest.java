@@ -5,6 +5,7 @@ import io.zksync.domain.contract.ContractAddress;
 import io.zksync.domain.fee.TransactionFee;
 import io.zksync.domain.fee.TransactionFeeDetails;
 import io.zksync.domain.fee.TransactionType;
+import io.zksync.domain.token.Tokens;
 import io.zksync.provider.DefaultProvider;
 import io.zksync.provider.Provider;
 import io.zksync.signer.EthSigner;
@@ -125,5 +126,14 @@ public class TestTest {
 
         System.out.println(contractAddress);
         
+    }
+
+    @Test
+    public void getTokens() throws JsonProcessingException {
+        final Provider provider = new DefaultProvider(new HttpTransport("https://rinkeby-api.zksync.io/jsrpc"));
+
+        final Tokens tokens = provider.getTokens();
+
+        System.out.println(tokens);
     }
 }
