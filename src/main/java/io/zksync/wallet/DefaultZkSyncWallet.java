@@ -50,10 +50,9 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
     @Override
     public String setSigningKey(TransactionFee fee, Integer nonce, boolean onchainAuth) {
 
-        //TODO better nonce logic (see js sdk)
-        //TODO better fee logic
+        final Integer nonceToUse = nonce == null ? getNonce() : nonce;
 
-        final SignedTransaction<ChangePubKey> signedTx = buildSignedChangePubKeyTx(fee, nonce, onchainAuth);
+        final SignedTransaction<ChangePubKey> signedTx = buildSignedChangePubKeyTx(fee, nonceToUse, onchainAuth);
 
         if (pubKeyHash.equals(signedTx.getTransaction().getNewPkHash())) {
             throw new ZkSyncException("Current signing key is already set");
