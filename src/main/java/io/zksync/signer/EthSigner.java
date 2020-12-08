@@ -37,6 +37,10 @@ public class EthSigner {
         return credentials.getAddress();
     }
 
+    public Credentials getCredentials() {
+        return this.credentials;
+    }
+
     public EthSignature signChangePubKey(String pubKeyHash, Integer nonce, Integer accountId) {
         return signMessage(getChangePubKeyMessage(pubKeyHash, nonce, accountId));
     }

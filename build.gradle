@@ -32,6 +32,9 @@ dependencies {
     // === Http Client ===
     implementation 'com.squareup.okhttp3:okhttp:4.8.0'
 
+    // === Web3 client ===
+    implementation 'org.web3j:core:5.0.0'
+
     // === For Eth Signing ===
     implementation 'org.web3j:crypto:5.0.0'
 
