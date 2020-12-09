@@ -1,26 +1,33 @@
 package io.zksync.signer;
 
+import io.zksync.domain.ChainId;
 import io.zksync.domain.Signature;
 import io.zksync.domain.transaction.ChangePubKey;
 import io.zksync.domain.transaction.ForcedExit;
 import io.zksync.domain.transaction.Transfer;
 import io.zksync.domain.transaction.Withdraw;
 import io.zksync.exception.ZkSyncException;
+import io.zksync.exception.ZkSyncIncorrectCredentialsException;
 import io.zksync.sdk.zkscrypto.lib.ZksCrypto;
 import io.zksync.sdk.zkscrypto.lib.entity.ZksPackedPublicKey;
 import io.zksync.sdk.zkscrypto.lib.entity.ZksPrivateKey;
 import io.zksync.sdk.zkscrypto.lib.exception.ZksMusigTooLongException;
 import io.zksync.sdk.zkscrypto.lib.exception.ZksSeedTooShortException;
+import io.zksync.signer.EthSignature.SignatureType;
+
 import org.web3j.utils.Numeric;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.security.SignatureException;
 
 import static io.zksync.signer.SigningUtils.*;
 
 public class ZkSigner {
 
     private static final ZksCrypto crypto = ZksCrypto.load();
+    
+    public static final String MESSAGE = "Access zkSync account.\n\nOnly sign this message for a trusted client!";
 
     private final ZksPrivateKey privateKey;
 
@@ -49,6 +56,41 @@ public class ZkSigner {
         } catch (ZksSeedTooShortException e) {
             throw new ZkSyncException(e);
         }
+    }
+
+    public static ZkSigner fromRawPrivateKey(byte[] rawPrivateKey){
+        try {
+            // Generate private key from seed
+            ZksPrivateKey privateKey = crypto.generatePrivateKey(rawPrivateKey);
+            privateKey.data = rawPrivateKey;
+
+            return new ZkSigner(privateKey);
+        } catch (ZksSeedTooShortException e) {
+            throw new ZkSyncException(e);
+        }
+    }
+
+    public static ZkSigner fromEthSigner(EthSigner ethSigner, ChainId chainId) {
+        String message;
+        if (chainId == ChainId.Mainnet) {
+            message = MESSAGE;
+        } else {
+            message = String.format("%s\nChain ID: %d.", MESSAGE, chainId.getId());
+        }
+        EthSignature signature = ethSigner.signMessage(message);
+        if (signature.getType() != SignatureType.EthereumSignature) {
+            throw new ZkSyncIncorrectCredentialsException("Invalid signature type: " + signature.getType());
+        }
+        try {
+            if (!ethSigner.verifySignature(signature, message)) {
+                throw new ZkSyncIncorrectCredentialsException("Failed to verify signature: " + signature.getSignature());
+            }
+        } catch (SignatureException e) {
+            throw new ZkSyncIncorrectCredentialsException("Failed to verify signature: " + signature.getSignature(), e);
+        }
+
+        return fromSeed(Numeric.hexStringToByteArray(signature.getSignature()));
+
     }
 
     public Signature sign(byte[] message) {

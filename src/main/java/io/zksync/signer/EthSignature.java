@@ -9,7 +9,12 @@ import lombok.Getter;
 @AllArgsConstructor
 public class EthSignature {
 
-    private String type;
+    private SignatureType type;
 
     private String signature;
+
+    public enum SignatureType {
+        EthereumSignature,
+        EIP1271Signature
+    }
 }

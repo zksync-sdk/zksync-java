@@ -11,6 +11,8 @@ import org.web3j.utils.Numeric;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.SignatureException;
+import java.util.Arrays;
 
 import static io.zksync.signer.SigningUtils.*;
 
@@ -23,7 +25,6 @@ public class EthSigner {
         System.out.println(Numeric.toHexString(credentials.getEcKeyPair().getPrivateKey().toByteArray()));
         this.credentials = credentials;
     }
-
 
     public static EthSigner fromMnemonic(String mnemonic) {
         return new EthSigner(generateCredentialsFromMnemonic(mnemonic, 0));
@@ -45,21 +46,13 @@ public class EthSigner {
         return signMessage(getChangePubKeyMessage(pubKeyHash, nonce, accountId));
     }
 
-    public EthSignature signTransfer(String to,
-                                     Integer accountId,
-                                     Integer nonce,
-                                     BigInteger amount,
-                                     Token token,
-                                     BigInteger fee) {
+    public EthSignature signTransfer(String to, Integer accountId, Integer nonce, BigInteger amount, Token token,
+            BigInteger fee) {
         return signMessage(getTransferMessage(to, accountId, nonce, amount, token, fee));
     }
 
-    public EthSignature signWithdraw(String to,
-                                     Integer accountId,
-                                     Integer nonce,
-                                     BigInteger amount,
-                                     Token token,
-                                     BigInteger fee) {
+    public EthSignature signWithdraw(String to, Integer accountId, Integer nonce, BigInteger amount, Token token,
+            BigInteger fee) {
         return signMessage(getWithdrawMessage(to, accountId, nonce, amount, token, fee));
     }
 
@@ -80,11 +73,18 @@ public class EthSigner {
 
         final String signature = Numeric.toHexString(output.toByteArray());
 
-        return EthSignature
-                .builder()
-                .signature(signature)
-                .type("EthereumSignature")
-                .build();
+        return EthSignature.builder().signature(signature).type(EthSignature.SignatureType.EthereumSignature).build();
+    }
+
+    public boolean verifySignature(EthSignature signature, String message) throws SignatureException {
+        byte[] sig = Numeric.hexStringToByteArray(signature.getSignature());
+        Sign.SignatureData signatureData = new Sign.SignatureData(
+            Arrays.copyOfRange(sig, 0, 32),
+            Arrays.copyOfRange(sig, 32, 64),
+            Arrays.copyOfRange(sig, 64, 65)
+        );
+        BigInteger publicKey = Sign.signedPrefixedMessageToKey(message.getBytes(), signatureData);
+        return credentials.getEcKeyPair().getPublicKey().equals(publicKey);
     }
 
     private static Credentials generateCredentialsFromMnemonic(String mnemonic, int accountIndex) {
