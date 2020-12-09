@@ -20,7 +20,7 @@ import static io.zksync.signer.SigningUtils.*;
 
 public class ZkSigner {
 
-    private final ZksCrypto crypto;
+    private static final ZksCrypto crypto = ZksCrypto.load();
 
     private final ZksPrivateKey privateKey;
 
@@ -28,8 +28,7 @@ public class ZkSigner {
 
     private final String publicKeyHash;
 
-    private ZkSigner(ZksPrivateKey privateKey, ZksCrypto crypto) {
-        this.crypto = crypto;
+    private ZkSigner(ZksPrivateKey privateKey) {
         this.privateKey = privateKey;
 
         System.out.println("Private key: " + Numeric.toHexString(privateKey.getData()));
@@ -42,16 +41,11 @@ public class ZkSigner {
     }
 
     public static ZkSigner fromSeed(byte[] seed) {
-
-        // Load native library
-        ZksCrypto crypto = ZksCrypto.load();
-
         try {
-
             // Generate private key from seed
             ZksPrivateKey privateKey = crypto.generatePrivateKey(seed);
 
-            return new ZkSigner(privateKey, crypto);
+            return new ZkSigner(privateKey);
         } catch (ZksSeedTooShortException e) {
             throw new ZkSyncException(e);
         }
