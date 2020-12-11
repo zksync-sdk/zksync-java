@@ -39,7 +39,7 @@ public class SigningUtils {
                                             BigInteger amount,
                                             Token token,
                                             BigInteger fee) {
-        String result = String.format(
+        return String.format(
                 "Transfer %s %s\n" +
                         "To: %s\n" +
                         "Nonce: %s\n" +
@@ -52,7 +52,6 @@ public class SigningUtils {
                 format(fee),
                 token.getSymbol(),
                 accountId);
-        return result;
     }
 
     public static String getWithdrawMessage(String to,
