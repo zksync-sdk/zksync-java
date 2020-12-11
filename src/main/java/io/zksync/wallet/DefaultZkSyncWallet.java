@@ -31,11 +31,11 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
 
     private String pubKeyHash;
 
-    DefaultZkSyncWallet(EthSigner ethSigner, ZkSigner zkSigner, ZkSyncTransport transport) {
+    DefaultZkSyncWallet(EthSigner ethSigner, ZkSigner zkSigner, Provider provider) {
         this.ethSigner = ethSigner;
         this.zkSigner = zkSigner;
 
-        this.provider = new DefaultProvider(transport);
+        this.provider = provider;
 
         final AccountState state = getState();
 
@@ -44,7 +44,11 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
     }
 
     public static DefaultZkSyncWallet build(EthSigner ethSigner, ZkSigner zkSigner, ZkSyncTransport transport) {
-        return new DefaultZkSyncWallet(ethSigner, zkSigner, transport);
+        return new DefaultZkSyncWallet(ethSigner, zkSigner, new DefaultProvider(transport));
+    }
+
+    public static DefaultZkSyncWallet build(EthSigner ethSigner, ZkSigner zkSigner, Provider provider) {
+        return new DefaultZkSyncWallet(ethSigner, zkSigner, provider);
     }
 
     @Override

@@ -19,7 +19,6 @@ import org.web3j.utils.Numeric;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.security.SignatureException;
 
 import static io.zksync.signer.SigningUtils.*;
 
@@ -71,21 +70,19 @@ public class ZkSigner {
     }
 
     public static ZkSigner fromEthSigner(EthSigner ethSigner, ChainId chainId) {
-        String message;
-        if (chainId == ChainId.Mainnet) {
-            message = MESSAGE;
-        } else {
+        String message = MESSAGE;
+        if (chainId != ChainId.Mainnet) {
             message = String.format("%s\nChain ID: %d.", MESSAGE, chainId.getId());
         }
-        EthSignature signature = ethSigner.signMessage(message);
+        EthSignature signature = ethSigner.signMessage(message, true);
         if (signature.getType() != SignatureType.EthereumSignature) {
             throw new ZkSyncIncorrectCredentialsException("Invalid signature type: " + signature.getType());
         }
         try {
-            if (!ethSigner.verifySignature(signature, message)) {
+            if (!ethSigner.verifySignature(signature, message, true)) {
                 throw new ZkSyncIncorrectCredentialsException("Failed to verify signature: " + signature.getSignature());
             }
-        } catch (SignatureException e) {
+        } catch (Exception e) {
             throw new ZkSyncIncorrectCredentialsException("Failed to verify signature: " + signature.getSignature(), e);
         }
 

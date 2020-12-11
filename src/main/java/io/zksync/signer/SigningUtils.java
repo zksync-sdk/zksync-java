@@ -6,6 +6,8 @@ import org.web3j.utils.Numeric;
 
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
+import java.text.NumberFormat;
+import java.util.Locale;
 
 public class SigningUtils {
 
@@ -37,19 +39,20 @@ public class SigningUtils {
                                             BigInteger amount,
                                             Token token,
                                             BigInteger fee) {
-        return String.format(
+        String result = String.format(
                 "Transfer %s %s\n" +
                         "To: %s\n" +
                         "Nonce: %s\n" +
                         "Fee: %s %s\n" +
                         "Account Id: %s",
-                token.formatToken(amount),
+                format(amount),
                 token.getSymbol(),
                 to.toLowerCase(),
                 nonce,
-                token.formatToken(fee),
+                format(fee),
                 token.getSymbol(),
                 accountId);
+        return result;
     }
 
     public static String getWithdrawMessage(String to,
@@ -65,13 +68,21 @@ public class SigningUtils {
                         "Nonce: %s\n" +
                         "Fee: %s %s\n" +
                         "Account Id: %s",
-                token.formatToken(amount),
+                format(amount),
                 token.getSymbol(),
                 to.toLowerCase(),
                 nonce,
-                token.formatToken(fee),
+                format(fee),
                 token.getSymbol(),
                 accountId);
+    }
+
+    public static String format(BigInteger amount) {
+        NumberFormat format = NumberFormat.getNumberInstance(Locale.ROOT);
+        format.setMinimumFractionDigits(1);
+        format.setMaximumFractionDigits(18);
+        format.setGroupingUsed(false);
+        return format.format(amount);
     }
 
     public static byte[] accountIdToBytes(Integer accountId) {
