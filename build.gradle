@@ -45,4 +45,5 @@ dependencies {
 
     // === Test dependencies ===
     testCompile 'junit:junit:4.13.1'
+    testCompile "org.mockito:mockito-inline:+"
 }
