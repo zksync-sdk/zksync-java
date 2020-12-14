@@ -32,4 +32,13 @@ public class Token {
     public boolean isETH() {
         return address.equals(Address.DEFAULT.getValue()) && symbol.equals("ETH");
     }
+
+    public static Token createETH() {
+        return new Token(
+            0,
+            Address.DEFAULT.getValue(),
+            "ETH",
+            18
+        );
+    }
 }
