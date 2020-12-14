@@ -71,43 +71,36 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
     }
 
     @Override
-    public String syncTransfer(String to, String tokenIdentifier, BigInteger amount, BigInteger fee, Integer nonce) {
+    public String syncTransfer(String to, BigInteger amount, TransactionFee fee, Integer nonce) {
 
         final Integer nonceToUse = nonce == null ? getNonce() : nonce;
 
-        final SignedTransaction<Transfer> signedTransfer = buildSignedTransferTx(to , tokenIdentifier, amount, fee, nonceToUse);
+        final SignedTransaction<Transfer> signedTransfer = buildSignedTransferTx(to , fee.getFeeToken(), amount, fee.getFee(), nonceToUse);
 
         return submitSignedTransaction(signedTransfer.getTransaction(), signedTransfer.getEthereumSignature(), false);
     }
 
     @Override
     public String syncWithdraw(String ethAddress,
-                               String tokenIdentifier,
                                BigInteger amount,
-                               BigInteger fee,
+                               TransactionFee fee,
                                Integer nonce,
                                boolean fastProcessing) {
         final Integer nonceToUse = nonce == null ? getNonce() : nonce;
-        final TransactionType txType = fastProcessing ? TransactionType.FAST_WITHDRAW : TransactionType.WITHDRAW;
-        final BigInteger feeToUse = fee == null ?
-                getTransactionFee(txType, ethAddress, tokenIdentifier).getTotalFeeInteger() : fee;
 
         final SignedTransaction<Withdraw> signedWithdraw =
-                buildSignedWithdrawTx(ethAddress, tokenIdentifier, amount, feeToUse, nonceToUse);
+                buildSignedWithdrawTx(ethAddress, fee.getFeeToken(), amount, fee.getFee(), nonceToUse);
 
         return submitSignedTransaction(
                 signedWithdraw.getTransaction(), signedWithdraw.getEthereumSignature(), fastProcessing);
     }
 
     @Override
-    public String syncForcedExit(String target, String tokenIdentifier, BigInteger fee, Integer nonce) {
+    public String syncForcedExit(String target, TransactionFee fee, Integer nonce) {
         final Integer nonceToUse = nonce == null ? getNonce() : nonce;
 
-        final BigInteger feeToUse = fee == null ?
-                getTransactionFee(TransactionType.FORCED_EXIT, target, tokenIdentifier).getTotalFeeInteger() : fee;
-
         final SignedTransaction<ForcedExit> signedForcedExit =
-                buildSignedForcedExitTx(target, tokenIdentifier, feeToUse, nonceToUse);
+                buildSignedForcedExitTx(target, fee.getFeeToken(), fee.getFee(), nonceToUse);
 
         return submitSignedTransaction(
                 signedForcedExit.getTransaction(), signedForcedExit.getEthereumSignature(), false);
@@ -188,7 +181,7 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
                 .build();
 
         final EthSignature ethSignature = ethSigner.signTransfer(
-                to, accountId, nonce, amount, provider.getTokens().getToken(tokenIdentifier), fee);
+                to, accountId, nonce, amount, token, fee);
 
         return new SignedTransaction<>(zkSigner.signTransfer(transfer), ethSignature);
     }

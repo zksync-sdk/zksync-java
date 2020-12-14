@@ -28,16 +28,15 @@ public interface ZkSyncWallet {
 
     String setSigningKey(TransactionFee fee, Integer nonce, boolean onchainAuth);
 
-    String syncTransfer(String to, String tokenIdentifier, BigInteger amount, BigInteger fee, Integer nonce);
+    String syncTransfer(String to, BigInteger amount, TransactionFee fee, Integer nonce);
 
     String syncWithdraw(String ethAddress,
-                        String tokenIdentifier,
                         BigInteger amount,
-                        BigInteger fee,
+                        TransactionFee fee,
                         Integer nonce,
                         boolean fastProcessing);
 
-    String syncForcedExit(String target, String tokenIdentifier, BigInteger fee, Integer nonce);
+    String syncForcedExit(String target, TransactionFee fee, Integer nonce);
 
     AccountState getState();
 

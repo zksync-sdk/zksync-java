@@ -61,7 +61,7 @@ public class DefaultZkSyncWalletTest {
         when(provider.getTokens()).thenReturn(new Tokens(Collections.singletonMap(token.getAddress(), token)));
         when(provider.submitTx(defaultZkSyncTransaction_ChangePubKey(), ethSignature, false)).thenReturn("success:hash");
         
-        String response = wallet.setSigningKey(defaultTransactionFee(), 13, false);
+        String response = wallet.setSigningKey(defaultTransactionFee(1000000000), 13, false);
         
         assertNotNull(response);
         assertEquals(response, "success:hash");
@@ -76,9 +76,8 @@ public class DefaultZkSyncWalletTest {
         when(provider.submitTx(defaultZkSyncTransaction_Transfer(), ethSignature, false)).thenReturn("success:hash");
         String response = wallet.syncTransfer(
             "0x19aa2ed8712072e918632259780e587698ef58df",
-            "0x0000000000000000000000000000000000000000",
             BigInteger.valueOf(1000000000000L),
-            BigInteger.valueOf(1000000),
+            defaultTransactionFee(1000000),
             12
         );
         assertNotNull(response);
@@ -94,9 +93,8 @@ public class DefaultZkSyncWalletTest {
         when(provider.submitTx(defaultZkSyncTransaction_Withdraw(), ethSignature, false)).thenReturn("success:hash");
         String response = wallet.syncWithdraw(
             "0x19aa2ed8712072e918632259780e587698ef58df",
-            "0x0000000000000000000000000000000000000000",
             BigInteger.valueOf(1000000000000L),
-            BigInteger.valueOf(1000000),
+            defaultTransactionFee(1000000),
             12,
             false
         );
@@ -112,8 +110,7 @@ public class DefaultZkSyncWalletTest {
         when(provider.submitTx(defaultZkSyncTransaction_ForceExit(), null, false)).thenReturn("success:hash");
         String response = wallet.syncForcedExit(
             "0x19aa2ed8712072e918632259780e587698ef58df",
-            "0x0000000000000000000000000000000000000000",
-            BigInteger.valueOf(1000000),
+            defaultTransactionFee(1000000),
             12
         );
         assertNotNull(response);
@@ -164,10 +161,10 @@ public class DefaultZkSyncWalletTest {
         return token;
     }
 
-    private TransactionFee defaultTransactionFee() {
+    private TransactionFee defaultTransactionFee(long amount) {
         TransactionFee fee = new TransactionFee(
             "0x0000000000000000000000000000000000000000",
-            BigInteger.valueOf(1000000000)
+            BigInteger.valueOf(amount)
         );
         return fee;
     }
