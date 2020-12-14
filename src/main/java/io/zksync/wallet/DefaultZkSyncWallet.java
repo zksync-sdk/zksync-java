@@ -8,6 +8,8 @@ import io.zksync.domain.state.AccountState;
 import io.zksync.domain.token.Token;
 import io.zksync.domain.token.Tokens;
 import io.zksync.domain.transaction.*;
+import io.zksync.ethereum.EthereumProvider;
+import io.zksync.ethereum.wrappers.ZkSync;
 import io.zksync.exception.ZkSyncException;
 import io.zksync.provider.DefaultProvider;
 import io.zksync.provider.Provider;
@@ -18,6 +20,9 @@ import io.zksync.transport.ZkSyncTransport;
 import lombok.Getter;
 
 import java.math.BigInteger;
+
+import org.web3j.protocol.Web3j;
+import org.web3j.tx.gas.ContractGasProvider;
 
 public class DefaultZkSyncWallet implements ZkSyncWallet {
 
@@ -247,5 +252,13 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
 
     private Integer getNonce() {
         return getState().getCommitted().getNonce();
+    }
+
+    @Override
+    public EthereumProvider createEthereumProvider(Web3j web3j, ContractGasProvider contractGasProvider) {
+        String contractAddress = this.provider.contractAddress().getMainContract();
+        ZkSync contract = ZkSync.load(contractAddress, web3j, this.ethSigner.getCredentials(), contractGasProvider);
+        EthereumProvider ethereum = new EthereumProvider(web3j, this.ethSigner, contract);
+        return ethereum;
     }
 }
