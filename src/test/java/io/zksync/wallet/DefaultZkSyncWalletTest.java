@@ -156,7 +156,7 @@ public class DefaultZkSyncWalletTest {
             0,
             "0x0000000000000000000000000000000000000000",
             "ETH",
-            18
+            0 // INFO: only for testing purpose. 1:1
         );
         return token;
     }
