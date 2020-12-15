@@ -5,6 +5,7 @@ import io.zksync.exception.ZkSyncException;
 import org.web3j.utils.Numeric;
 
 import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -39,19 +40,20 @@ public class SigningUtils {
                                             BigInteger amount,
                                             Token token,
                                             BigInteger fee) {
-        return String.format(
+        String result = String.format(
                 "Transfer %s %s\n" +
                         "To: %s\n" +
                         "Nonce: %s\n" +
                         "Fee: %s %s\n" +
                         "Account Id: %s",
-                format(amount),
+                format(token.intoDecimal(amount)),
                 token.getSymbol(),
                 to.toLowerCase(),
                 nonce,
-                format(fee),
+                format(token.intoDecimal(fee)),
                 token.getSymbol(),
                 accountId);
+        return result;
     }
 
     public static String getWithdrawMessage(String to,
@@ -67,16 +69,16 @@ public class SigningUtils {
                         "Nonce: %s\n" +
                         "Fee: %s %s\n" +
                         "Account Id: %s",
-                format(amount),
+                format(token.intoDecimal(amount)),
                 token.getSymbol(),
                 to.toLowerCase(),
                 nonce,
-                format(fee),
+                format(token.intoDecimal(fee)),
                 token.getSymbol(),
                 accountId);
     }
 
-    public static String format(BigInteger amount) {
+    public static String format(BigDecimal amount) {
         NumberFormat format = NumberFormat.getNumberInstance(Locale.ROOT);
         format.setMinimumFractionDigits(1);
         format.setMaximumFractionDigits(18);
@@ -204,19 +206,12 @@ public class SigningUtils {
             mantissa =  mantissa.divide(BigInteger.valueOf(expBase));
             exponent++;
         }
-        System.out.println("Mantissa: " + mantissa);
-        System.out.println("Mantissa intValue: " + mantissa.longValue());
-        System.out.println("Exponent: " + exponent);
 
         final Bits exponentBitSet = numberToBitsLE(Long.valueOf(exponent), expBits);
         final Bits mantissaBitSet = numberToBitsLE(mantissa.longValue(), mantissaBits);
 
-        System.out.println("exponent bits: " + exponentBitSet);
-        System.out.println("mantissa bits: " + mantissaBitSet);
-
         final Bits reversed = combineBitSets(exponentBitSet, mantissaBitSet).reverse();
 
-        System.out.println("reversed: " + reversed);
         printBytes("bits into bytes BE reversed", reverseBytes(bitsIntoBytesInBEOrder(reversed)));
 
         return reverseBits(bitsIntoBytesInBEOrder(reversed));
@@ -352,14 +347,12 @@ public class SigningUtils {
     }
 
     private static Bits numberToBitsLE(long number, int numBits) {
-        System.out.println(number);
         final Bits bitSet = new Bits(numBits);
         bitSet.size();
 
         for (int i = 0; i < numBits; i++) {
             final long bit = number & 1;
 
-            System.out.println(number + " % " + 1 + " = " + bit);
             if (bit == 1) {
                 bitSet.set(i);
             }
@@ -432,12 +425,6 @@ public class SigningUtils {
     }
 
     private static void printBytes(String prefix, byte[] toPrint) {
-        final StringBuilder builder = new StringBuilder();
-
-        for (byte aByte : toPrint) {
-            builder.append(Byte.toUnsignedInt(aByte) + ", ");
-        }
-
-        System.out.println(prefix + builder.toString());
+        
     }
 }

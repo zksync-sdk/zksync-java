@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 
 @Data
 @NoArgsConstructor
@@ -31,6 +32,12 @@ public class Token {
 
     public boolean isETH() {
         return address.equals(Address.DEFAULT.getValue()) && symbol.equals("ETH");
+    }
+
+    public BigDecimal intoDecimal(BigInteger amount) {
+        return new BigDecimal(amount)
+            .setScale(decimals)
+            .divide(BigDecimal.TEN.pow(decimals), RoundingMode.DOWN);
     }
 
     public static Token createETH() {
