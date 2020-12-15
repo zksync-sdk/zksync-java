@@ -3,8 +3,10 @@ package io.zksync;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.concurrent.ExecutionException;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -17,6 +19,7 @@ import org.web3j.utils.Convert.Unit;
 
 import io.zksync.domain.ChainId;
 import io.zksync.domain.fee.TransactionFee;
+import io.zksync.domain.fee.TransactionFeeBatchRequest;
 import io.zksync.domain.fee.TransactionFeeDetails;
 import io.zksync.domain.fee.TransactionType;
 import io.zksync.domain.state.AccountState;
@@ -27,6 +30,7 @@ import io.zksync.signer.ZkSigner;
 import io.zksync.transport.HttpTransport;
 import io.zksync.wallet.ZkSyncWallet;
 
+// TODO: Comment @Ignore and fill placeholders to use this test
 @Ignore
 public class IntegrationTestFullFlow {
 
@@ -124,6 +128,35 @@ public class IntegrationTestFullFlow {
         ).get();
 
         assertTrue(receipt.isStatusOK());
+    }
+
+    @Test
+    public void getTransactionFeeBatch() {
+        TransactionFeeDetails details = wallet.getProvider().getTransactionFee(
+            TransactionFeeBatchRequest.builder()
+                .tokenIdentifier(ETHEREUM_COIN.getAddress())
+                .transactionType(Pair.of(TransactionType.FORCED_EXIT, "0x98122427eE193fAcbb9Fbdbf6BDE7d9042A95a0f"))
+                .transactionType(Pair.of(TransactionType.TRANSFER, "0xC8568F373484Cd51FDc1FE3675E46D8C0dc7D246"))
+                .transactionType(Pair.of(TransactionType.TRANSFER, "0x98122427eE193fAcbb9Fbdbf6BDE7d9042A95a0f"))
+                .transactionType(Pair.of(TransactionType.CHANGE_PUB_KEY, "0x98122427eE193fAcbb9Fbdbf6BDE7d9042A95a0f"))
+                .build()
+        );
+
+        System.out.println(details.getTotalFee());
+    }
+
+    @Test
+    public void getTokenPrice() {
+        BigDecimal price = wallet.getProvider().getTokenPrice(ETHEREUM_COIN);
+
+        System.out.println(price.toString());
+    }
+
+    @Test
+    public void getConfirmationsForEthOpAmount() {
+        BigInteger amount = wallet.getProvider().getConfirmationsForEthOpAmount();
+
+        System.out.println(amount.toString());
     }
     
 }
