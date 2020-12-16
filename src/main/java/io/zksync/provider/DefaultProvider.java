@@ -90,6 +90,11 @@ public class DefaultProvider implements Provider {
     }
 
     @Override
+    public String submitTx(ZkSyncTransaction tx, boolean fastProcessing) {
+        return submitTx(tx, null, fastProcessing);
+    }
+
+    @Override
     public List<String> submitTxBatch(List<Pair<ZkSyncTransaction, EthSignature>> txs, EthSignature ethereumSignature) {
         final List<String> responseBody = transport.send("submit_txs_batch", 
             Arrays.asList(
@@ -100,6 +105,11 @@ public class DefaultProvider implements Provider {
         );
 
         return responseBody;
+    }
+
+    @Override
+    public List<String> submitTxBatch(List<Pair<ZkSyncTransaction, EthSignature>> txs) {
+        return submitTxBatch(txs, null);
     }
 
     @Override

@@ -32,7 +32,11 @@ public interface Provider {
 
     String submitTx(ZkSyncTransaction tx, EthSignature ethereumSignature, boolean fastProcessing);
 
+    String submitTx(ZkSyncTransaction tx, boolean fastProcessing);
+
     List<String> submitTxBatch(List<Pair<ZkSyncTransaction, EthSignature>> txs, EthSignature ethereumSignature);
+
+    List<String> submitTxBatch(List<Pair<ZkSyncTransaction, EthSignature>> txs);
 
     TransactionDetails getTransactionDetails(String txHash);
 
