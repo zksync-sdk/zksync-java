@@ -37,8 +37,6 @@ public class ZkSigner {
     private ZkSigner(ZksPrivateKey privateKey) {
         this.privateKey = privateKey;
 
-        System.out.println("Private key: " + Numeric.toHexString(privateKey.getData()));
-
         // Generate public key from private key
         publicKey = crypto.getPublicKey(privateKey);
 
@@ -78,13 +76,6 @@ public class ZkSigner {
         if (signature.getType() != SignatureType.EthereumSignature) {
             throw new ZkSyncIncorrectCredentialsException("Invalid signature type: " + signature.getType());
         }
-        try {
-            if (!ethSigner.verifySignature(signature, message, true)) {
-                throw new ZkSyncIncorrectCredentialsException("Failed to verify signature: " + signature.getSignature());
-            }
-        } catch (Exception e) {
-            throw new ZkSyncIncorrectCredentialsException("Failed to verify signature: " + signature.getSignature(), e);
-        }
 
         return fromSeed(Numeric.hexStringToByteArray(signature.getSignature()));
 
@@ -93,10 +84,6 @@ public class ZkSigner {
     public Signature sign(byte[] message) {
         try {
             final byte[] signature = crypto.signMessage(privateKey, message).getData();
-
-            System.out.println("PK: " + Numeric.toHexString(privateKey.getData())
-                    + "\nMessage: " + Numeric.toHexString(message)
-                    + "\nSignature: " + Numeric.toHexString(signature).substring(2));
 
             return Signature
                     .builder()
@@ -129,8 +116,6 @@ public class ZkSigner {
 
             byte[] message = outputStream.toByteArray();
 
-            System.out.println("Message to sign: " + Numeric.toHexString(message));
-
             final Signature signature = sign(message);
 
             changePubKey.setSignature(signature);
@@ -155,10 +140,6 @@ public class ZkSigner {
 
             byte[] message = outputStream.toByteArray();
 
-            System.out.println("Amount: " + Numeric.toHexString(amountPackedToBytes(transfer.getAmount())));
-            System.out.println("Fee: " + Numeric.toHexString(feeToBytes(transfer.getFeeInteger())));
-            System.out.println("Message to sign: " + Numeric.toHexString(message));
-
             final Signature signature = sign(message);
 
             transfer.setSignature(signature);
@@ -182,10 +163,6 @@ public class ZkSigner {
             outputStream.write(nonceToBytes(withdraw.getNonce()));
 
             byte[] message = outputStream.toByteArray();
-
-            System.out.println("Amount: " + Numeric.toHexString(amountPackedToBytes(withdraw.getAmount())));
-            System.out.println("Fee: " + Numeric.toHexString(feeToBytes(withdraw.getFeeInteger())));
-            System.out.println("Message to sign: " + Numeric.toHexString(message));
 
             final Signature signature = sign(message);
 
