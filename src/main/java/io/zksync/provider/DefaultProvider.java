@@ -31,6 +31,7 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 public class DefaultProvider implements Provider {
@@ -90,7 +91,13 @@ public class DefaultProvider implements Provider {
 
     @Override
     public List<String> submitTxBatch(List<Pair<ZkSyncTransaction, EthSignature>> txs, EthSignature ethereumSignature) {
-        final List<String> responseBody = transport.send("submit_txs_batch", Arrays.asList(txs, ethereumSignature), ZksSentTransactionBatch.class);
+        final List<String> responseBody = transport.send("submit_txs_batch", 
+            Arrays.asList(
+                txs.stream().map(Pair::getLeft).collect(Collectors.toList()),
+                txs.stream().map(Pair::getRight).collect(Collectors.toList()),
+                ethereumSignature),
+            ZksSentTransactionBatch.class
+        );
 
         return responseBody;
     }
