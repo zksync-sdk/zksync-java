@@ -168,13 +168,11 @@ public class SigningUtils {
 
     private static BigInteger closestPackableTransactionFee(BigInteger fee) {
         final byte[] packedFee = packFee(fee);
-        printBytes("packed fee: ", packedFee);
         return decimalByteArrayToInteger(packedFee, FEE_EXPONENT_BIT_WIDTH, FEE_MANTISSA_BIT_WIDTH, 10);
     }
 
     private static BigInteger closestPackableTransactionAmount(BigInteger amount) {
         final byte[] packedAmount = packAmount(amount);
-        printBytes("packed amount: ", packedAmount);
         return decimalByteArrayToInteger(packedAmount, AMOUNT_EXPONENT_BIT_WIDTH, AMOUNT_MANTISSA_BIT_WIDTH, 10);
     }
 
@@ -211,8 +209,6 @@ public class SigningUtils {
         final Bits mantissaBitSet = numberToBitsLE(mantissa.longValue(), mantissaBits);
 
         final Bits reversed = combineBitSets(exponentBitSet, mantissaBitSet).reverse();
-
-        printBytes("bits into bytes BE reversed", reverseBytes(bitsIntoBytesInBEOrder(reversed)));
 
         return reverseBits(bitsIntoBytesInBEOrder(reversed));
     }
@@ -315,8 +311,6 @@ public class SigningUtils {
 
             resultBytes[currentByte] = Integer.valueOf(value).byteValue();
         }
-
-        printBytes("bitsIntoBytesInBEOrder: ", resultBytes);
 
         return resultBytes;
     }
@@ -422,9 +416,5 @@ public class SigningUtils {
         }
 
         return result;
-    }
-
-    private static void printBytes(String prefix, byte[] toPrint) {
-        
     }
 }
