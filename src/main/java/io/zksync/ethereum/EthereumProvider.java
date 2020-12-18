@@ -62,8 +62,8 @@ public class EthereumProvider {
         return contract.fullExit(BigInteger.valueOf(accountId), token.getAddress()).sendAsync();
     }
 
-    public CompletableFuture<TransactionReceipt> setAuthPubkeyHash(String pubKeyhash, AccountState state) {
-        return contract.setAuthPubkeyHash(Numeric.hexStringToByteArray(pubKeyhash), BigInteger.valueOf(state.getCommitted().getNonce())).sendAsync();
+    public CompletableFuture<TransactionReceipt> setAuthPubkeyHash(String pubKeyhash, BigInteger nonce) {
+        return contract.setAuthPubkeyHash(Numeric.hexStringToByteArray(pubKeyhash), nonce).sendAsync();
     }
 
     public CompletableFuture<Boolean> isDepositApproved(Token token, Optional<BigInteger> threshold) {

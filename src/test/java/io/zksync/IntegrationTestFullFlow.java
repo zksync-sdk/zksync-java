@@ -25,9 +25,9 @@ import io.zksync.domain.fee.TransactionType;
 import io.zksync.domain.state.AccountState;
 import io.zksync.domain.token.Token;
 import io.zksync.ethereum.EthereumProvider;
+import io.zksync.provider.Provider;
 import io.zksync.signer.EthSigner;
 import io.zksync.signer.ZkSigner;
-import io.zksync.transport.HttpTransport;
 import io.zksync.wallet.ZkSyncWallet;
 
 // TODO: Comment @Ignore and fill placeholders to use this test
@@ -41,13 +41,14 @@ public class IntegrationTestFullFlow {
     private EthereumProvider ethereum;
 
     private EthSigner ethSigner;
+    private ZkSigner zkSigner;
 
     @Before
     public void setup() {
         ethSigner = EthSigner.fromRawPrivateKey(PRIVATE_KEY);
-        final ZkSigner zkSigner = ZkSigner.fromEthSigner(ethSigner, ChainId.Rinkeby);
+        zkSigner = ZkSigner.fromEthSigner(ethSigner, ChainId.Rinkeby);
 
-        wallet = ZkSyncWallet.build(ethSigner, zkSigner, new HttpTransport("{{zk_sync_rpc_url}}"));
+        wallet = ZkSyncWallet.build(ethSigner, zkSigner, Provider.defaultProvider(ChainId.Rinkeby));
         ethereum = wallet.createEthereumProvider(
                 Web3j.build(new HttpService("{{ethereum_web3_rpc_url}}")),
                 new DefaultGasProvider());
@@ -72,6 +73,16 @@ public class IntegrationTestFullFlow {
         String hash =  wallet.setSigningKey(fee, state.getCommitted().getNonce(), false);
 
         System.out.println(hash);
+    }
+
+    @Test
+    public void setupPublicKeyOnChain() throws InterruptedException, ExecutionException {
+        AccountState state = wallet.getState();
+        TransactionReceipt receipt = ethereum.setAuthPubkeyHash(
+            zkSigner.getPublicKeyHash().substring(5),
+            BigInteger.valueOf(state.getCommitted().getNonce())).get();
+
+        assertTrue(receipt.isStatusOK());
     }
 
     @Test
