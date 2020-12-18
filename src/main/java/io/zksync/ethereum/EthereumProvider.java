@@ -2,9 +2,11 @@ package io.zksync.ethereum;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
@@ -72,6 +74,14 @@ public class EthereumProvider {
             .sendAsync()
             .thenApply(allowance -> {
                 return allowance.compareTo(threshold.orElse(DEFAULT_THRESHOLD)) >= 0;
+            });
+    }
+
+    public CompletableFuture<Boolean> isOnChainAuthPubkeyHashSet(BigInteger nonce) {
+        return contract.authFacts(ethSigner.getAddress(), nonce)
+            .sendAsync()
+            .thenApply(publicKeyHash -> {
+                return !Arrays.equals(publicKeyHash, Bytes32.DEFAULT.getValue());
             });
     }
 

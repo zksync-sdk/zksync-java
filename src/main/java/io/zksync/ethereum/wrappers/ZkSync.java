@@ -5,9 +5,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.web3j.abi.TypeReference;
+import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.generated.Bytes32;
+import org.web3j.abi.datatypes.generated.Uint32;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.RemoteFunctionCall;
@@ -75,6 +77,8 @@ public class ZkSync extends Contract {
 
     public static final String FUNC_WITHDRAWETH = "withdrawETH";
 
+    public static final String FUNC_AUTH_FACTS = "authFacts";
+
     @Deprecated
     protected ZkSync(String contractAddress, Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
         super(BINARY, contractAddress, web3j, credentials, gasPrice, gasLimit);
@@ -96,6 +100,13 @@ public class ZkSync extends Contract {
     public RemoteFunctionCall<byte[]> EMPTY_STRING_KECCAK() {
         final Function function = new Function(FUNC_EMPTY_STRING_KECCAK, 
                 Arrays.<Type>asList(), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Bytes32>() {}));
+        return executeRemoteCallSingleValueReturn(function, byte[].class);
+    }
+
+    public RemoteFunctionCall<byte[]> authFacts(String senderAddress, BigInteger nonce) {
+        final Function function = new Function(FUNC_AUTH_FACTS, 
+                Arrays.<Type>asList(new Address(senderAddress), new Uint32(nonce)), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Bytes32>() {}));
         return executeRemoteCallSingleValueReturn(function, byte[].class);
     }

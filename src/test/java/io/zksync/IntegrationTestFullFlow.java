@@ -86,6 +86,14 @@ public class IntegrationTestFullFlow {
     }
 
     @Test
+    public void testIsPublicKeyIsSetOnChain() throws InterruptedException, ExecutionException {
+        AccountState state = wallet.getState();
+        boolean result = ethereum.isOnChainAuthPubkeyHashSet(BigInteger.valueOf(state.getCommitted().getNonce())).get();
+
+        assertTrue(result);
+    }
+
+    @Test
     public void transferFunds() {
         AccountState state = wallet.getState();
         TransactionFeeDetails details = wallet.getTransactionFee(TransactionType.TRANSFER, "0x4F6071Dbd5818473EEEF6CE563e66bf22618d8c0".toLowerCase(), ETHEREUM_COIN.getAddress());
