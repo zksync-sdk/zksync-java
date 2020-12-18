@@ -24,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class EthereumProvider {
 
+    private static final BigInteger MAX_APPROVE_AMOUNT = BigInteger.valueOf(2).pow(256).subtract(BigInteger.ONE);
     private static final BigInteger DEFAULT_THRESHOLD = BigInteger.valueOf(2).pow(255);
     private static final ContractGasProvider DEFAULT_GAS_PROVIDER = new StaticGasProvider(BigInteger.ZERO,
             BigInteger.ZERO);
@@ -34,7 +35,7 @@ public class EthereumProvider {
 
     public CompletableFuture<TransactionReceipt> approveDeposits(Token token, Optional<BigInteger> limit) {
         ERC20 tokenContract = ERC20.load(token.getAddress(), this.web3j, this.ethSigner.getCredentials(), this.contract.getGasProvider());
-        return tokenContract.approve(this.contractAddress(), limit.orElse(DEFAULT_THRESHOLD)).sendAsync();
+        return tokenContract.approve(this.contractAddress(), limit.orElse(MAX_APPROVE_AMOUNT)).sendAsync();
     }
 
     public CompletableFuture<TransactionReceipt> transfer(Token token, BigInteger amount, String to) {
