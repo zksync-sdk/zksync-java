@@ -13,8 +13,10 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tx.Transfer;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.tx.gas.StaticGasProvider;
+import org.web3j.utils.Numeric;
 import org.web3j.utils.Convert.Unit;
 
+import io.zksync.domain.state.AccountState;
 import io.zksync.domain.token.Token;
 import io.zksync.ethereum.wrappers.ERC20;
 import io.zksync.ethereum.wrappers.ZkSync;
@@ -58,6 +60,10 @@ public class EthereumProvider {
 
     public CompletableFuture<TransactionReceipt> fullExit(Token token, Integer accountId) {
         return contract.fullExit(BigInteger.valueOf(accountId), token.getAddress()).sendAsync();
+    }
+
+    public CompletableFuture<TransactionReceipt> setAuthPubkeyHash(String pubKeyhash, AccountState state) {
+        return contract.setAuthPubkeyHash(Numeric.hexStringToByteArray(pubKeyhash), BigInteger.valueOf(state.getCommitted().getNonce())).sendAsync();
     }
 
     public CompletableFuture<Boolean> isDepositApproved(Token token, Optional<BigInteger> threshold) {
