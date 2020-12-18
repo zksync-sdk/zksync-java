@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
 
+import io.zksync.domain.ChainId;
 import io.zksync.domain.contract.ContractAddress;
 import io.zksync.domain.fee.TransactionFeeBatchRequest;
 import io.zksync.domain.fee.TransactionFeeDetails;
@@ -17,6 +18,7 @@ import io.zksync.domain.token.Tokens;
 import io.zksync.domain.transaction.TransactionDetails;
 import io.zksync.domain.transaction.ZkSyncTransaction;
 import io.zksync.signer.EthSignature;
+import io.zksync.transport.HttpTransport;
 
 public interface Provider {
 
@@ -45,4 +47,16 @@ public interface Provider {
     EthOpInfo getEthOpInfo(Integer priority);
 
     BigInteger getConfirmationsForEthOpAmount();
+
+    static Provider defaultProvider(ChainId chainId) {
+        HttpTransport transport = null;
+        switch (chainId) {
+            case Mainnet: transport = new HttpTransport("https://api.zksync.io/jsrpc"); break;
+            case Rinkeby: transport = new HttpTransport("https://rinkeby-api.zksync.io/jsrpc"); break;
+            case Ropsten: transport = new HttpTransport("https://ropsten-api.zksync.io/jsrpc"); break;
+            case Localhost: transport = new HttpTransport("http://127.0.0.1:3030"); break;
+        }
+        return new DefaultProvider(transport);
+    }
+
 }
