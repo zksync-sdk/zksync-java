@@ -18,7 +18,6 @@ import org.web3j.tx.gas.StaticGasProvider;
 import org.web3j.utils.Numeric;
 import org.web3j.utils.Convert.Unit;
 
-import io.zksync.domain.state.AccountState;
 import io.zksync.domain.token.Token;
 import io.zksync.ethereum.wrappers.ERC20;
 import io.zksync.ethereum.wrappers.ZkSync;
