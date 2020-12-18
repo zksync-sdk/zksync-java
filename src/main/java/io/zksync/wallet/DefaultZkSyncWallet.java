@@ -59,7 +59,7 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
     @Override
     public String setSigningKey(TransactionFee fee, Integer nonce, boolean onchainAuth) {
 
-        if (isSingingKeySet()) {
+        if (isSigningKeySet()) {
             throw new ZkSyncException("Current signing key is already set");
         }
 
@@ -127,7 +127,7 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
     }
 
     @Override
-    public boolean isSingingKeySet() {
+    public boolean isSigningKeySet() {
         return this.pubKeyHash.equals(this.zkSigner.getPublicKeyHash());
     }
 

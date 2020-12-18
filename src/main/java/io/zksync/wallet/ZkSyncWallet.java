@@ -38,7 +38,7 @@ public interface ZkSyncWallet {
 
     String syncForcedExit(String target, TransactionFee fee, Integer nonce);
 
-    boolean isSingingKeySet();
+    boolean isSigningKeySet();
 
     AccountState getState();
 
