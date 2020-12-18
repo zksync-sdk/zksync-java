@@ -59,13 +59,13 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
     @Override
     public String setSigningKey(TransactionFee fee, Integer nonce, boolean onchainAuth) {
 
+        if (isSingingKeySet()) {
+            throw new ZkSyncException("Current signing key is already set");
+        }
+
         final Integer nonceToUse = nonce == null ? getNonce() : nonce;
 
         final SignedTransaction<ChangePubKey> signedTx = buildSignedChangePubKeyTx(fee, nonceToUse, onchainAuth);
-
-        if (pubKeyHash.equals(signedTx.getTransaction().getNewPkHash())) {
-            throw new ZkSyncException("Current signing key is already set");
-        }
 
         return submitSignedTransaction(signedTx.getTransaction(), signedTx.getEthereumSignature(), false);
     }
@@ -124,6 +124,11 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
                 .address(address)
                 .tokenIdentifier(tokenIdentifier)
                 .build());
+    }
+
+    @Override
+    public boolean isSingingKeySet() {
+        return this.pubKeyHash.equals(this.zkSigner.getPublicKeyHash());
     }
 
     private SignedTransaction<ChangePubKey> buildSignedChangePubKeyTx(TransactionFee fee, Integer nonce, boolean onchainAuth) {

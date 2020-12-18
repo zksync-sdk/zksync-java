@@ -38,6 +38,8 @@ public interface ZkSyncWallet {
 
     String syncForcedExit(String target, TransactionFee fee, Integer nonce);
 
+    boolean isSingingKeySet();
+
     AccountState getState();
 
     TransactionFeeDetails getTransactionFee(TransactionType type, String tokenIdentifier);
