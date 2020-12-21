@@ -1,9 +1,5 @@
 package io.zksync.signer;
 
-import sun.security.util.ArrayUtil;
-
-import java.util.Arrays;
-
 public class Bits {
 
     boolean[] bits;

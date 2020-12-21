@@ -4,5 +4,5 @@ import java.util.List;
 
 public interface ZkSyncTransport {
 
-    <T> T send(String method, List<Object> params, Class<T> returntype);
+    <R, T extends ZkSyncResponse<R>> R send(String method, List<Object> params, Class<T> returntype);
 }

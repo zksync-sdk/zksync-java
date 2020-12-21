@@ -1,9 +1,5 @@
 package io.zksync.transport;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.zksync.exception.ZkSyncException;
 import okhttp3.*;
@@ -13,6 +9,8 @@ import java.time.Duration;
 import java.util.List;
 
 public class HttpTransport implements ZkSyncTransport {
+
+    public static final MediaType APPLICATION_JSON = MediaType.get("application/json; charset=utf-8");
 
     private final OkHttpClient httpClient;
 
@@ -33,7 +31,7 @@ public class HttpTransport implements ZkSyncTransport {
     }
 
     @Override
-    public <T> T send(String method, List<Object> params, Class<T> returntype) {
+    public <R, T extends ZkSyncResponse<R>> R send(String method, List<Object> params, Class<T> returntype) {
         try {
             final ZkSyncRequest zkRequest = ZkSyncRequest
                     .builder()
@@ -41,30 +39,24 @@ public class HttpTransport implements ZkSyncTransport {
                     .params(params)
                     .build();
 
-            System.out.println(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(zkRequest));
-
-            final RequestBody body = RequestBody.create(objectMapper.writeValueAsString(zkRequest),
-                    MediaType.parse("application/json"));
+            final RequestBody body = RequestBody.create(objectMapper.writeValueAsString(zkRequest), APPLICATION_JSON);
 
             final Request request = new Request.Builder()
                     .url(url)
                     .post(body)
                     .build();
 
-            //TODO gotta sort out this double parsing
-            //new TypeReference<ZkSyncResponse<T>>() {} doesn't work
             final Response response = httpClient.newCall(request).execute();
 
             final String responseString = response.body().string();
 
-            final ZkSyncResponse<JsonNode> resultJson = objectMapper.readValue(responseString,
-                    new TypeReference<ZkSyncResponse<JsonNode>>() {});
+            final ZkSyncResponse<R> resultJson = objectMapper.readValue(responseString, returntype);
 
             if (resultJson.getError() != null) {
                 throw new ZkSyncException(resultJson.getError());
             }
 
-            return objectMapper.readValue(resultJson.getResult().toString(), returntype);
+            return resultJson.getResult();
 
         } catch (IOException e) {
             throw new ZkSyncException("There was an error when sending the request", e);
