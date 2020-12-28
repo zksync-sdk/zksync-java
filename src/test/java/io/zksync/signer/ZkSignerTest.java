@@ -26,7 +26,7 @@ public class ZkSignerTest {
 
     @Test
     public void testCreationFromEthSigner() {
-        EthSigner ethSigner = EthSigner.fromRawPrivateKey(PRIVATE_KEY);
+        DefaultEthSigner ethSigner = DefaultEthSigner.fromRawPrivateKey(PRIVATE_KEY);
         ZkSigner signer = ZkSigner.fromEthSigner(ethSigner, ChainId.Mainnet);
 
         assertEquals(signer.getPublicKeyHash(), PUBKEY_HASH_ETH);

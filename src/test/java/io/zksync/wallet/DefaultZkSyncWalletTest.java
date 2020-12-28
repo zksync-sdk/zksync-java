@@ -19,6 +19,7 @@ import io.zksync.domain.transaction.Withdraw;
 import io.zksync.provider.Provider;
 import io.zksync.signer.EthSignature;
 import io.zksync.signer.EthSigner;
+import io.zksync.signer.DefaultEthSigner;
 import io.zksync.signer.ZkSigner;
 import io.zksync.signer.EthSignature.SignatureType;
 
@@ -38,7 +39,7 @@ public class DefaultZkSyncWalletTest {
 
     @Before
     public void setUp() {
-        ethSigner = EthSigner.fromRawPrivateKey(ETH_PRIVATE_KEY);
+        ethSigner = DefaultEthSigner.fromRawPrivateKey(ETH_PRIVATE_KEY);
         zkSigner = ZkSigner.fromEthSigner(ethSigner, ChainId.Mainnet);
 
         Provider provider = mock(Provider.class);

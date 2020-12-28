@@ -26,6 +26,7 @@ import io.zksync.domain.state.AccountState;
 import io.zksync.domain.token.Token;
 import io.zksync.ethereum.EthereumProvider;
 import io.zksync.provider.Provider;
+import io.zksync.signer.DefaultEthSigner;
 import io.zksync.signer.EthSigner;
 import io.zksync.signer.ZkSigner;
 import io.zksync.wallet.ZkSyncWallet;
@@ -45,7 +46,7 @@ public class IntegrationTestFullFlow {
 
     @Before
     public void setup() {
-        ethSigner = EthSigner.fromRawPrivateKey(PRIVATE_KEY);
+        ethSigner = DefaultEthSigner.fromRawPrivateKey(PRIVATE_KEY);
         zkSigner = ZkSigner.fromEthSigner(ethSigner, ChainId.Rinkeby);
 
         wallet = ZkSyncWallet.build(ethSigner, zkSigner, Provider.defaultProvider(ChainId.Rinkeby));
