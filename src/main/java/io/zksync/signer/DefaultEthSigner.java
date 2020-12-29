@@ -1,11 +1,15 @@
 package io.zksync.signer;
 
 import io.zksync.domain.token.Token;
+import io.zksync.ethereum.transaction.NoOpTransactionManager;
 import io.zksync.exception.ZkSyncException;
 import org.web3j.crypto.Bip32ECKeyPair;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.MnemonicUtils;
 import org.web3j.crypto.Sign;
+import org.web3j.protocol.Web3j;
+import org.web3j.tx.RawTransactionManager;
+import org.web3j.tx.TransactionManager;
 import org.web3j.utils.Numeric;
 
 import java.io.ByteArrayOutputStream;
@@ -20,31 +24,49 @@ import static io.zksync.signer.SigningUtils.*;
 public class DefaultEthSigner implements EthSigner {
 
     private final Credentials credentials;
+    private final TransactionManager transactionManager;
 
-    private DefaultEthSigner(Credentials credentials) {
-
-        System.out.println(Numeric.toHexString(credentials.getEcKeyPair().getPrivateKey().toByteArray()));
+    private DefaultEthSigner(TransactionManager transactionManager, Credentials credentials) {
         this.credentials = credentials;
+        this.transactionManager = transactionManager;
     }
 
-    public static DefaultEthSigner fromMnemonic(String mnemonic) {
-        return new DefaultEthSigner(generateCredentialsFromMnemonic(mnemonic, 0));
+    public static EthSigner fromMnemonic(String mnemonic) {
+        Credentials credentials = generateCredentialsFromMnemonic(mnemonic, 0);
+        return new DefaultEthSigner(new NoOpTransactionManager(credentials), credentials);
     }
 
-    public static DefaultEthSigner fromMnemonic(String mnemonic, int accountIndex) {
-        return new DefaultEthSigner(generateCredentialsFromMnemonic(mnemonic, accountIndex));
+    public static EthSigner fromMnemonic(String mnemonic, int accountIndex) {
+        Credentials credentials = generateCredentialsFromMnemonic(mnemonic, accountIndex);
+        return new DefaultEthSigner(new NoOpTransactionManager(credentials), credentials);
     }
 
-    public static DefaultEthSigner fromRawPrivateKey(String rawPrivateKey) {
-        return new DefaultEthSigner(Credentials.create(rawPrivateKey));
+    public static EthSigner fromRawPrivateKey(String rawPrivateKey) {
+        Credentials credentials = Credentials.create(rawPrivateKey);
+        return new DefaultEthSigner(new NoOpTransactionManager(credentials), credentials);
+    }
+
+    public static EthSigner fromMnemonic(Web3j web3j, String mnemonic) {
+        Credentials credentials = generateCredentialsFromMnemonic(mnemonic, 0);
+        return new DefaultEthSigner(new RawTransactionManager(web3j, credentials), credentials);
+    }
+
+    public static EthSigner fromMnemonic(Web3j web3j, String mnemonic, int accountIndex) {
+        Credentials credentials = generateCredentialsFromMnemonic(mnemonic, accountIndex);
+        return new DefaultEthSigner(new RawTransactionManager(web3j, credentials), credentials);
+    }
+
+    public static EthSigner fromRawPrivateKey(Web3j web3j, String rawPrivateKey) {
+        Credentials credentials = Credentials.create(rawPrivateKey);
+        return new DefaultEthSigner(new RawTransactionManager(web3j, credentials), credentials);
     }
 
     public String getAddress() {
-        return credentials.getAddress();
+        return transactionManager.getFromAddress();
     }
 
-    public Credentials getCredentials() {
-        return this.credentials;
+    public TransactionManager getTransactionManager() {
+        return this.transactionManager;
     }
 
     public CompletableFuture<EthSignature> signChangePubKey(String pubKeyHash, Integer nonce, Integer accountId) {
@@ -104,7 +126,7 @@ public class DefaultEthSigner implements EthSigner {
 
     private static Credentials generateCredentialsFromMnemonic(String mnemonic, int accountIndex) {
         //m/44'/60'/0'/0 derivation path
-        int[] derivationPath = {44 | Bip32ECKeyPair.HARDENED_BIT, 60 | Bip32ECKeyPair.HARDENED_BIT, 0 | Bip32ECKeyPair.HARDENED_BIT, 0,accountIndex};
+        int[] derivationPath = {44 | Bip32ECKeyPair.HARDENED_BIT, 60 | Bip32ECKeyPair.HARDENED_BIT, 0 | Bip32ECKeyPair.HARDENED_BIT, 0, accountIndex};
 
         // Generate a BIP32 master keypair from the mnemonic phrase
         Bip32ECKeyPair masterKeypair = Bip32ECKeyPair.generateKeyPair(

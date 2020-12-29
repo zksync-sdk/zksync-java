@@ -46,12 +46,13 @@ public class IntegrationTestFullFlow {
 
     @Before
     public void setup() {
-        ethSigner = DefaultEthSigner.fromRawPrivateKey(PRIVATE_KEY);
+        Web3j web3j = Web3j.build(new HttpService("{{ethereum_web3_rpc_url}}"));
+        ethSigner = DefaultEthSigner.fromRawPrivateKey(web3j, PRIVATE_KEY);
         zkSigner = ZkSigner.fromEthSigner(ethSigner, ChainId.Rinkeby);
 
         wallet = ZkSyncWallet.build(ethSigner, zkSigner, Provider.defaultProvider(ChainId.Rinkeby));
         ethereum = wallet.createEthereumProvider(
-                Web3j.build(new HttpService("{{ethereum_web3_rpc_url}}")),
+                web3j,
                 new DefaultGasProvider());
     }
 

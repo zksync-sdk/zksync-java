@@ -4,7 +4,7 @@ import java.math.BigInteger;
 import java.security.SignatureException;
 import java.util.concurrent.CompletableFuture;
 
-import org.web3j.crypto.Credentials;
+import org.web3j.tx.TransactionManager;
 
 import io.zksync.domain.token.Token;
 
@@ -18,11 +18,11 @@ public interface EthSigner {
     String getAddress();
 
     /**
-     * Get internal credentials. @see org.web3j.crypto.Credentials
+     * Get internal transaction manager. @see org.web3j.tx.TransactionManager
      * 
-     * @return Credentials object that contains private and public key pair
+     * @return TransactionManager object that implements signing and sending transactions
      */
-    Credentials getCredentials();
+    TransactionManager getTransactionManager();
 
     /**
      * Sign ZkSync `ChangePubKey` operation message

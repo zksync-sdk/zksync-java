@@ -260,7 +260,7 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
     @Override
     public EthereumProvider createEthereumProvider(Web3j web3j, ContractGasProvider contractGasProvider) {
         String contractAddress = this.provider.contractAddress().getMainContract();
-        ZkSync contract = ZkSync.load(contractAddress, web3j, this.ethSigner.getCredentials(), contractGasProvider);
+        ZkSync contract = ZkSync.load(contractAddress, web3j, this.ethSigner.getTransactionManager(), contractGasProvider);
         DefaultEthereumProvider ethereum = new DefaultEthereumProvider(web3j, this.ethSigner, contract);
         return ethereum;
     }

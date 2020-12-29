@@ -38,7 +38,7 @@ public class DefaultEthereumProvider implements EthereumProvider {
 
     @Override
     public CompletableFuture<TransactionReceipt> approveDeposits(Token token, Optional<BigInteger> limit) {
-        ERC20 tokenContract = ERC20.load(token.getAddress(), this.web3j, this.ethSigner.getCredentials(), this.contract.getGasProvider());
+        ERC20 tokenContract = ERC20.load(token.getAddress(), this.web3j, this.ethSigner.getTransactionManager(), this.contract.getGasProvider());
         return tokenContract.approve(this.contractAddress(), limit.orElse(MAX_APPROVE_AMOUNT)).sendAsync();
     }
 
@@ -48,7 +48,7 @@ public class DefaultEthereumProvider implements EthereumProvider {
             Transfer transfer = new Transfer(web3j, contract.getTransactionManager());
             return transfer.sendFunds(to, new BigDecimal(amount), Unit.WEI).sendAsync();
         } else {
-            ERC20 tokenContract = ERC20.load(token.getAddress(), this.web3j, this.ethSigner.getCredentials(), this.contract.getGasProvider());
+            ERC20 tokenContract = ERC20.load(token.getAddress(), this.web3j, this.ethSigner.getTransactionManager(), this.contract.getGasProvider());
             return tokenContract.transfer(to, amount).sendAsync();
         }
     }
@@ -74,7 +74,7 @@ public class DefaultEthereumProvider implements EthereumProvider {
 
     @Override
     public CompletableFuture<Boolean> isDepositApproved(Token token, Optional<BigInteger> threshold) {
-        ERC20 tokenContract = ERC20.load(token.getAddress(), this.web3j, this.ethSigner.getCredentials(), DEFAULT_GAS_PROVIDER);
+        ERC20 tokenContract = ERC20.load(token.getAddress(), this.web3j, this.ethSigner.getTransactionManager(), DEFAULT_GAS_PROVIDER);
         return tokenContract.allowance(this.ethSigner.getAddress(), this.contractAddress())
             .sendAsync()
             .thenApply(allowance -> {
