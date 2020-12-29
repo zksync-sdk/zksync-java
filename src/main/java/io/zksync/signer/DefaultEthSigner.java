@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SignatureException;
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
 
 import static io.zksync.signer.SigningUtils.*;
 
@@ -46,25 +47,25 @@ public class DefaultEthSigner implements EthSigner {
         return this.credentials;
     }
 
-    public EthSignature signChangePubKey(String pubKeyHash, Integer nonce, Integer accountId) {
+    public CompletableFuture<EthSignature> signChangePubKey(String pubKeyHash, Integer nonce, Integer accountId) {
         return signMessage(getChangePubKeyMessage(pubKeyHash, nonce, accountId));
     }
 
-    public EthSignature signTransfer(String to, Integer accountId, Integer nonce, BigInteger amount, Token token,
+    public CompletableFuture<EthSignature> signTransfer(String to, Integer accountId, Integer nonce, BigInteger amount, Token token,
             BigInteger fee) {
         return signMessage(getTransferMessage(to, accountId, nonce, amount, token, fee));
     }
 
-    public EthSignature signWithdraw(String to, Integer accountId, Integer nonce, BigInteger amount, Token token,
+    public CompletableFuture<EthSignature> signWithdraw(String to, Integer accountId, Integer nonce, BigInteger amount, Token token,
             BigInteger fee) {
         return signMessage(getWithdrawMessage(to, accountId, nonce, amount, token, fee));
     }
 
-    public EthSignature signMessage(String message) {
+    public CompletableFuture<EthSignature> signMessage(String message) {
         return signMessage(message, true);
     }
 
-    public EthSignature signMessage(String message, boolean addPrefix) {
+    public CompletableFuture<EthSignature> signMessage(String message, boolean addPrefix) {
         Sign.SignatureData sig = addPrefix ?
             Sign.signPrefixedMessage(message.getBytes(), credentials.getEcKeyPair()) :
             Sign.signMessage(message.getBytes(), credentials.getEcKeyPair());
@@ -81,14 +82,14 @@ public class DefaultEthSigner implements EthSigner {
 
         final String signature = Numeric.toHexString(output.toByteArray());
 
-        return EthSignature.builder().signature(signature).type(EthSignature.SignatureType.EthereumSignature).build();
+        return CompletableFuture.completedFuture(EthSignature.builder().signature(signature).type(EthSignature.SignatureType.EthereumSignature).build());
     }
 
-    public boolean verifySignature(EthSignature signature, String message) throws SignatureException {
+    public CompletableFuture<Boolean> verifySignature(EthSignature signature, String message) throws SignatureException {
         return verifySignature(signature, message, true);
     }
 
-    public boolean verifySignature(EthSignature signature, String message, boolean prefixed) throws SignatureException {
+    public CompletableFuture<Boolean> verifySignature(EthSignature signature, String message, boolean prefixed) throws SignatureException {
         byte[] sig = Numeric.hexStringToByteArray(signature.getSignature());
         Sign.SignatureData signatureData = new Sign.SignatureData(
             Arrays.copyOfRange(sig, 64, 65),
@@ -98,7 +99,7 @@ public class DefaultEthSigner implements EthSigner {
         BigInteger publicKey = prefixed ?
             Sign.signedPrefixedMessageToKey(message.getBytes(), signatureData) :
             Sign.signedMessageToKey(message.getBytes(), signatureData);
-        return credentials.getEcKeyPair().getPublicKey().equals(publicKey);
+        return CompletableFuture.completedFuture(credentials.getEcKeyPair().getPublicKey().equals(publicKey));
     }
 
     private static Credentials generateCredentialsFromMnemonic(String mnemonic, int accountIndex) {

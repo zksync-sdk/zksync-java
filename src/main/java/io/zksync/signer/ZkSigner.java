@@ -14,6 +14,7 @@ import io.zksync.sdk.zkscrypto.lib.entity.ZksPrivateKey;
 import io.zksync.sdk.zkscrypto.lib.exception.ZksMusigTooLongException;
 import io.zksync.sdk.zkscrypto.lib.exception.ZksSeedTooShortException;
 import io.zksync.signer.EthSignature.SignatureType;
+import lombok.SneakyThrows;
 
 import org.web3j.utils.Numeric;
 
@@ -67,12 +68,13 @@ public class ZkSigner {
         }
     }
 
+    @SneakyThrows
     public static ZkSigner fromEthSigner(EthSigner ethSigner, ChainId chainId) {
         String message = MESSAGE;
         if (chainId != ChainId.Mainnet) {
             message = String.format("%s\nChain ID: %d.", MESSAGE, chainId.getId());
         }
-        EthSignature signature = ethSigner.signMessage(message, true);
+        EthSignature signature = ethSigner.signMessage(message, true).get();
         if (signature.getType() != SignatureType.EthereumSignature) {
             throw new ZkSyncIncorrectCredentialsException("Invalid signature type: " + signature.getType());
         }

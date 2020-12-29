@@ -2,6 +2,7 @@ package io.zksync.signer;
 
 import java.math.BigInteger;
 import java.security.SignatureException;
+import java.util.concurrent.CompletableFuture;
 
 import org.web3j.crypto.Credentials;
 
@@ -31,7 +32,7 @@ public interface EthSigner {
      * @param accountId - Id of the account in ZkSync
      * @return Signature object
      */
-    EthSignature signChangePubKey(String pubKeyHash, Integer nonce, Integer accountId);
+    CompletableFuture<EthSignature> signChangePubKey(String pubKeyHash, Integer nonce, Integer accountId);
 
     /**
      * Sign ZkSync `Transfer` operation message
@@ -44,7 +45,7 @@ public interface EthSigner {
      * @param fee - Cost of transaction in ZkSync network
      * @return Signature object
      */
-    EthSignature signTransfer(String to, Integer accountId, Integer nonce, BigInteger amount, Token token, BigInteger fee);
+    CompletableFuture<EthSignature> signTransfer(String to, Integer accountId, Integer nonce, BigInteger amount, Token token, BigInteger fee);
 
     /**
      * Sign ZkSync `Withdraw` operation message
@@ -57,7 +58,7 @@ public interface EthSigner {
      * @param fee - Cost of transaction in ZkSync network
      * @return Signature object
      */
-    EthSignature signWithdraw(String to, Integer accountId, Integer nonce, BigInteger amount, Token token, BigInteger fee);
+    CompletableFuture<EthSignature> signWithdraw(String to, Integer accountId, Integer nonce, BigInteger amount, Token token, BigInteger fee);
 
     /**
      * Sign raw message
@@ -65,7 +66,7 @@ public interface EthSigner {
      * @param message - Message to sign
      * @return Signature object
      */
-    EthSignature signMessage(String message);
+    CompletableFuture<EthSignature> signMessage(String message);
 
     /**
      * Sign raw message
@@ -74,7 +75,7 @@ public interface EthSigner {
      * @param addPrefix - If true then add secure prefix (https://eips.ethereum.org/EIPS/eip-712)
      * @return
      */
-    EthSignature signMessage(String message, boolean addPrefix);
+    CompletableFuture<EthSignature> signMessage(String message, boolean addPrefix);
 
     /**
      * Verify signature with raw message
@@ -85,7 +86,7 @@ public interface EthSigner {
      * @throws SignatureException If the public key could not be recovered or if there was a
      *     signature format error.
      */
-    boolean verifySignature(EthSignature signature, String message) throws SignatureException;
+    CompletableFuture<Boolean> verifySignature(EthSignature signature, String message) throws SignatureException;
 
     /**
      * Verify signature with raw message
@@ -97,6 +98,6 @@ public interface EthSigner {
      * @throws SignatureException If the public key could not be recovered or if there was a
      *     signature format error.
      */
-    boolean verifySignature(EthSignature signature, String message, boolean prefixed) throws SignatureException;
+    CompletableFuture<Boolean> verifySignature(EthSignature signature, String message, boolean prefixed) throws SignatureException;
 
 }
