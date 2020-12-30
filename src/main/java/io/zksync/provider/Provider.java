@@ -44,7 +44,7 @@ public interface Provider {
 
     ContractAddress contractAddress();
 
-    EthOpInfo getEthOpInfo(Integer priority);
+    EthOpInfo getEthOpInfo(Integer priorityOperationId);
 
     BigInteger getConfirmationsForEthOpAmount();
 
