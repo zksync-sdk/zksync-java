@@ -50,7 +50,8 @@ public class DefaultProvider implements Provider {
     @Override
     public TransactionFeeDetails getTransactionFee(TransactionFeeRequest feeRequest) {
         TransactionFeeDetails response = transport.send("get_tx_fee",
-            Arrays.asList(feeRequest.getTransactionType().getRaw(), feeRequest.getAddress(), feeRequest.getTokenIdentifier()),
+                Arrays.asList(feeRequest.getTransactionType().getRaw(), feeRequest.getAddress(),
+                        feeRequest.getTokenIdentifier()),
                 ZksTransactionFeeDetails.class);
 
         return response;
@@ -60,7 +61,8 @@ public class DefaultProvider implements Provider {
     public TransactionFeeDetails getTransactionFee(TransactionFeeBatchRequest feeRequest) {
 
         TransactionFeeDetails response = transport.send("get_txs_batch_fee_in_wei",
-            Arrays.asList(feeRequest.getTransactionTypesRaw(), feeRequest.getAddresses(), feeRequest.getTokenIdentifier()),
+                Arrays.asList(feeRequest.getTransactionTypesRaw(), feeRequest.getAddresses(),
+                        feeRequest.getTokenIdentifier()),
                 ZksTransactionFeeDetails.class);
 
         return response;
@@ -96,13 +98,10 @@ public class DefaultProvider implements Provider {
 
     @Override
     public List<String> submitTxBatch(List<Pair<ZkSyncTransaction, EthSignature>> txs, EthSignature ethereumSignature) {
-        final List<String> responseBody = transport.send("submit_txs_batch", 
-            Arrays.asList(
-                txs.stream().map(Pair::getLeft).collect(Collectors.toList()),
-                txs.stream().map(Pair::getRight).collect(Collectors.toList()),
-                ethereumSignature),
-            ZksSentTransactionBatch.class
-        );
+        final List<String> responseBody = transport.send("submit_txs_batch",
+                Arrays.asList(txs.stream().map(Pair::getLeft).collect(Collectors.toList()),
+                        txs.stream().map(Pair::getRight).collect(Collectors.toList()), ethereumSignature),
+                ZksSentTransactionBatch.class);
 
         return responseBody;
     }
@@ -114,7 +113,8 @@ public class DefaultProvider implements Provider {
 
     @Override
     public ContractAddress contractAddress() {
-        final ContractAddress contractAddress = transport.send("contract_address", Collections.emptyList(), ZksContractAddress.class);
+        final ContractAddress contractAddress = transport.send("contract_address", Collections.emptyList(),
+                ZksContractAddress.class);
 
         return contractAddress;
     }
@@ -139,6 +139,14 @@ public class DefaultProvider implements Provider {
     public BigInteger getConfirmationsForEthOpAmount() {
         final BigInteger response = transport.send("get_confirmations_for_eth_op_amount", Collections.emptyList(),
                 ZksGetConfirmationsForEthOpAmount.class);
+
+        return response;
+    }
+
+    @Override
+    public String getEthTransactionForWithdrawal(String zkSyncWithdrawalHash) {
+        final String response = transport.send("get_eth_tx_for_withdrawal", Collections.singletonList(zkSyncWithdrawalHash),
+                ZksSentTransaction.class);
 
         return response;
     }
