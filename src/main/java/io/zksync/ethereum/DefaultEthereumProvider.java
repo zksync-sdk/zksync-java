@@ -38,7 +38,8 @@ public class DefaultEthereumProvider implements EthereumProvider {
 
     @Override
     public CompletableFuture<TransactionReceipt> approveDeposits(Token token, Optional<BigInteger> limit) {
-        ERC20 tokenContract = ERC20.load(token.getAddress(), this.web3j, this.ethSigner.getTransactionManager(), this.contract.getGasProvider());
+        ERC20 tokenContract = ERC20.load(token.getAddress(), this.web3j, this.ethSigner.getTransactionManager(),
+                this.contract.getGasProvider());
         return tokenContract.approve(this.contractAddress(), limit.orElse(MAX_APPROVE_AMOUNT)).sendAsync();
     }
 
@@ -48,7 +49,8 @@ public class DefaultEthereumProvider implements EthereumProvider {
             Transfer transfer = new Transfer(web3j, contract.getTransactionManager());
             return transfer.sendFunds(to, new BigDecimal(amount), Unit.WEI).sendAsync();
         } else {
-            ERC20 tokenContract = ERC20.load(token.getAddress(), this.web3j, this.ethSigner.getTransactionManager(), this.contract.getGasProvider());
+            ERC20 tokenContract = ERC20.load(token.getAddress(), this.web3j, this.ethSigner.getTransactionManager(),
+                    this.contract.getGasProvider());
             return tokenContract.transfer(to, amount).sendAsync();
         }
     }
@@ -59,6 +61,15 @@ public class DefaultEthereumProvider implements EthereumProvider {
             return contract.depositETH(userAddress, amount).sendAsync();
         } else {
             return contract.depositERC20(token.getAddress(), amount, userAddress).sendAsync();
+        }
+    }
+
+    @Override
+    public CompletableFuture<TransactionReceipt> withdraw(Token token, BigInteger amount) {
+        if (token.isETH()) {
+            return contract.withdrawETH(amount).sendAsync();
+        } else {
+            return contract.withdrawERC20(token.getAddress(), amount).sendAsync();
         }
     }
 
@@ -74,35 +85,31 @@ public class DefaultEthereumProvider implements EthereumProvider {
 
     @Override
     public CompletableFuture<Boolean> isDepositApproved(Token token, Optional<BigInteger> threshold) {
-        ERC20 tokenContract = ERC20.load(token.getAddress(), this.web3j, this.ethSigner.getTransactionManager(), DEFAULT_GAS_PROVIDER);
-        return tokenContract.allowance(this.ethSigner.getAddress(), this.contractAddress())
-            .sendAsync()
-            .thenApply(allowance -> {
-                return allowance.compareTo(threshold.orElse(DEFAULT_THRESHOLD)) >= 0;
-            });
+        ERC20 tokenContract = ERC20.load(token.getAddress(), this.web3j, this.ethSigner.getTransactionManager(),
+                DEFAULT_GAS_PROVIDER);
+        return tokenContract.allowance(this.ethSigner.getAddress(), this.contractAddress()).sendAsync()
+                .thenApply(allowance -> {
+                    return allowance.compareTo(threshold.orElse(DEFAULT_THRESHOLD)) >= 0;
+                });
     }
 
     @Override
     public CompletableFuture<Boolean> isOnChainAuthPubkeyHashSet(BigInteger nonce) {
-        return contract.authFacts(ethSigner.getAddress(), nonce)
-            .sendAsync()
-            .thenApply(publicKeyHash -> {
-                return !Arrays.equals(publicKeyHash, Bytes32.DEFAULT.getValue());
-            });
+        return contract.authFacts(ethSigner.getAddress(), nonce).sendAsync().thenApply(publicKeyHash -> {
+            return !Arrays.equals(publicKeyHash, Bytes32.DEFAULT.getValue());
+        });
     }
 
     @Override
     public CompletableFuture<BigInteger> getBalance() {
-        return web3j.ethGetBalance(this.ethSigner.getAddress(), DefaultBlockParameterName.LATEST)
-            .sendAsync()
-            .thenApply(EthGetBalance::getBalance);
+        return web3j.ethGetBalance(this.ethSigner.getAddress(), DefaultBlockParameterName.LATEST).sendAsync()
+                .thenApply(EthGetBalance::getBalance);
     }
 
     @Override
     public CompletableFuture<BigInteger> getNonce() {
-        return web3j.ethGetTransactionCount(this.ethSigner.getAddress(), DefaultBlockParameterName.PENDING)
-            .sendAsync()
-            .thenApply(EthGetTransactionCount::getTransactionCount);
+        return web3j.ethGetTransactionCount(this.ethSigner.getAddress(), DefaultBlockParameterName.PENDING).sendAsync()
+                .thenApply(EthGetTransactionCount::getTransactionCount);
     }
 
     @Override
