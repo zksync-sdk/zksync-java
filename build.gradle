@@ -2,11 +2,10 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
-    id 'com.palantir.git-version' version '0.12.3'
 }
 
 group = 'io.zksync'
-version gitVersion()
+version System.getenv('VERSION')
 sourceCompatibility = '1.8'
 
 configurations {
