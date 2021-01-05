@@ -83,9 +83,8 @@ public interface Provider {
     /**
      * Submit signed transaction batch to ZkSync network
      * 
-     * @param tx - List of signed transaction objects
+     * @param txs- List of signed transaction objects
      * @param ethereumSignature - Signature of Ethereum account as 2-FA authorization
-     * @param fastProcessing - Mark the transaction should be executed as soon as possible
      * @return List of hashes of the sent transactions in ZkSync network
      */
     List<String> submitTxBatch(List<Pair<ZkSyncTransaction, EthSignature>> txs, EthSignature ethereumSignature);
@@ -93,8 +92,7 @@ public interface Provider {
     /**
      * Submit signed transaction batch to ZkSync network
      * 
-     * @param tx - List of signed transaction objects
-     * @param fastProcessing - Mark the transaction should be executed as soon as possible
+     * @param txs - List of signed transaction objects
      * @return List of hashes of the sent transactions in ZkSync network
      */
     List<String> submitTxBatch(List<Pair<ZkSyncTransaction, EthSignature>> txs);
@@ -102,7 +100,7 @@ public interface Provider {
     /**
      * Get details of the transaction in ZkSync network by hash
      * 
-     * @param txHash - Hash of the transaction in format: `sync-tx:<hex>`
+     * @param txHash - Hash of the transaction in format: `sync-tx:[hex]`
      * @return Details of the transaction
      */
     TransactionDetails getTransactionDetails(String txHash);
@@ -132,7 +130,7 @@ public interface Provider {
     /**
      * Get hash of the transaction in Ethereum network by hash of the transaction sent in ZkSync
      * 
-     * @param zkSyncWithdrawalHash - Hash of the transaction in format: `sync-tx:<hex>`
+     * @param zkSyncWithdrawalHash - Hash of the transaction in format: `sync-tx:[hex]`
      * @return Hash of the sent transaction in Ethereum network
      */
     String getEthTransactionForWithdrawal(String zkSyncWithdrawalHash);
