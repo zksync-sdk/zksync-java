@@ -19,6 +19,7 @@ import io.zksync.domain.transaction.Withdraw;
 import io.zksync.provider.Provider;
 import io.zksync.signer.EthSignature;
 import io.zksync.signer.EthSigner;
+import io.zksync.signer.DefaultEthSigner;
 import io.zksync.signer.ZkSigner;
 import io.zksync.signer.EthSignature.SignatureType;
 
@@ -32,37 +33,36 @@ public class DefaultZkSyncWalletTest {
 
     private static final String ETH_PRIVATE_KEY = "0x000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f";
 
-
     private ZkSyncWallet wallet;
     private EthSigner ethSigner;
     private ZkSigner zkSigner;
 
     @Before
     public void setUp() {
-        ethSigner = EthSigner.fromRawPrivateKey(ETH_PRIVATE_KEY);
+        ethSigner = DefaultEthSigner.fromRawPrivateKey(ETH_PRIVATE_KEY);
         zkSigner = ZkSigner.fromEthSigner(ethSigner, ChainId.Mainnet);
 
         Provider provider = mock(Provider.class);
         when(provider.getState(anyString())).thenReturn(defaultAccountState(44));
 
-        wallet = ZkSyncWallet
-                .build(ethSigner, zkSigner, provider);
+        wallet = ZkSyncWallet.build(ethSigner, zkSigner, provider);
     }
 
     @Test
     public void testSetSigningKey() {
         Provider provider = mock(Provider.class);
         when(provider.getState(anyString())).thenReturn(defaultAccountState(55));
-        ZkSyncWallet wallet = ZkSyncWallet
-                .build(ethSigner, zkSigner, provider);
+        ZkSyncWallet wallet = ZkSyncWallet.build(ethSigner, zkSigner, provider);
         Token token = defaultToken();
-        EthSignature ethSignature = new EthSignature(SignatureType.EthereumSignature, "0xe062aca0dd8438174f424a26f3dd528ca9bd98366b2dafd6c6735eeaccd9e787245ac7dbbe2a37e3a74f168e723c5a2c613de25795a056bc81ff4c8d4106e56f1c");
-        
+        EthSignature ethSignature = new EthSignature(SignatureType.EthereumSignature,
+                "0xe062aca0dd8438174f424a26f3dd528ca9bd98366b2dafd6c6735eeaccd9e787245ac7dbbe2a37e3a74f168e723c5a2c613de25795a056bc81ff4c8d4106e56f1c");
+
         when(provider.getTokens()).thenReturn(new Tokens(Collections.singletonMap(token.getAddress(), token)));
-        when(provider.submitTx(defaultZkSyncTransaction_ChangePubKey(), ethSignature, false)).thenReturn("success:hash");
-        
+        when(provider.submitTx(defaultZkSyncTransaction_ChangePubKey(), ethSignature, false))
+                .thenReturn("success:hash");
+
         String response = wallet.setSigningKey(defaultTransactionFee(1000000000), 13, false);
-        
+
         assertNotNull(response);
         assertEquals(response, "success:hash");
     }
@@ -71,15 +71,12 @@ public class DefaultZkSyncWalletTest {
     public void testSyncTransfer() {
         Provider provider = wallet.getProvider();
         Token token = defaultToken();
-        EthSignature ethSignature = new EthSignature(SignatureType.EthereumSignature, "0x6f7e631024b648e8d3984f84aa14d4f1b1013191042ef51b6443e3f25b075a0346988ab824687041ce699a91ed6e20bedff7c730aac3d8c7a111dd408c1862e41c");
+        EthSignature ethSignature = new EthSignature(SignatureType.EthereumSignature,
+                "0x6f7e631024b648e8d3984f84aa14d4f1b1013191042ef51b6443e3f25b075a0346988ab824687041ce699a91ed6e20bedff7c730aac3d8c7a111dd408c1862e41c");
         when(provider.getTokens()).thenReturn(new Tokens(Collections.singletonMap(token.getAddress(), token)));
         when(provider.submitTx(defaultZkSyncTransaction_Transfer(), ethSignature, false)).thenReturn("success:hash");
-        String response = wallet.syncTransfer(
-            "0x19aa2ed8712072e918632259780e587698ef58df",
-            BigInteger.valueOf(1000000000000L),
-            defaultTransactionFee(1000000),
-            12
-        );
+        String response = wallet.syncTransfer("0x19aa2ed8712072e918632259780e587698ef58df",
+                BigInteger.valueOf(1000000000000L), defaultTransactionFee(1000000), 12);
         assertNotNull(response);
         assertEquals(response, "success:hash");
     }

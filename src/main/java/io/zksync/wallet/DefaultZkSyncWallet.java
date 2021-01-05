@@ -8,6 +8,7 @@ import io.zksync.domain.state.AccountState;
 import io.zksync.domain.token.Token;
 import io.zksync.domain.token.Tokens;
 import io.zksync.domain.transaction.*;
+import io.zksync.ethereum.DefaultEthereumProvider;
 import io.zksync.ethereum.EthereumProvider;
 import io.zksync.ethereum.wrappers.ZkSync;
 import io.zksync.exception.ZkSyncException;
@@ -18,6 +19,7 @@ import io.zksync.signer.EthSigner;
 import io.zksync.signer.ZkSigner;
 import io.zksync.transport.ZkSyncTransport;
 import lombok.Getter;
+import lombok.SneakyThrows;
 
 import java.math.BigInteger;
 
@@ -131,6 +133,7 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
         return this.pubKeyHash.equals(this.zkSigner.getPublicKeyHash());
     }
 
+    @SneakyThrows
     private SignedTransaction<ChangePubKey> buildSignedChangePubKeyTx(TransactionFee fee, Integer nonce, boolean onchainAuth) {
         if (zkSigner == null) {
             throw new Error("ZKSync signer is required for current pubkey calculation.");
@@ -152,7 +155,7 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
 
         if (!onchainAuth) {
             ethSignature = ethSigner.signChangePubKey(
-                    zkSigner.getPublicKeyHash(), nonce, accountId);
+                    zkSigner.getPublicKeyHash(), nonce, accountId).get();
 
             changePubKey.setEthSignature(ethSignature.getSignature());
         }
@@ -160,6 +163,7 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
         return new SignedTransaction<>(zkSigner.signChangePubKey(changePubKey), ethSignature);
     }
 
+    @SneakyThrows
     private SignedTransaction<Transfer> buildSignedTransferTx(String to,
                                                               String tokenIdentifier,
                                                               BigInteger amount,
@@ -186,11 +190,12 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
                 .build();
 
         final EthSignature ethSignature = ethSigner.signTransfer(
-                to, accountId, nonce, amount, token, fee);
+                to, accountId, nonce, amount, token, fee).get();
 
         return new SignedTransaction<>(zkSigner.signTransfer(transfer), ethSignature);
     }
 
+    @SneakyThrows
     private SignedTransaction<Withdraw> buildSignedWithdrawTx(String to, String tokenIdentifier, BigInteger amount, BigInteger fee, Integer nonce) {
         if (zkSigner == null) {
             throw new Error("ZKSync signer is required for current pubkey calculation.");
@@ -213,7 +218,7 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
                 .build();
 
         final EthSignature ethSignature = ethSigner.signWithdraw(
-                to, accountId, nonce, amount, provider.getTokens().getToken(tokenIdentifier), fee);
+                to, accountId, nonce, amount, provider.getTokens().getToken(tokenIdentifier), fee).get();
 
         return new SignedTransaction<>(zkSigner.signWithdraw(withdraw), ethSignature);
     }
@@ -255,8 +260,8 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
     @Override
     public EthereumProvider createEthereumProvider(Web3j web3j, ContractGasProvider contractGasProvider) {
         String contractAddress = this.provider.contractAddress().getMainContract();
-        ZkSync contract = ZkSync.load(contractAddress, web3j, this.ethSigner.getCredentials(), contractGasProvider);
-        EthereumProvider ethereum = new EthereumProvider(web3j, this.ethSigner, contract);
+        ZkSync contract = ZkSync.load(contractAddress, web3j, this.ethSigner.getTransactionManager(), contractGasProvider);
+        DefaultEthereumProvider ethereum = new DefaultEthereumProvider(web3j, this.ethSigner, contract);
         return ethereum;
     }
 }
