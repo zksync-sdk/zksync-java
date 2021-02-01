@@ -114,21 +114,6 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
     }
 
     @Override
-    public TransactionFeeDetails getTransactionFee(TransactionType type, String tokenIdentifier) {
-        return getTransactionFee(type, ethSigner.getAddress(), tokenIdentifier);
-    }
-
-    @Override
-    public TransactionFeeDetails getTransactionFee(TransactionType type, String address, String tokenIdentifier) {
-        return provider.getTransactionFee(TransactionFeeRequest
-                .builder()
-                .transactionType(type)
-                .address(address)
-                .tokenIdentifier(tokenIdentifier)
-                .build());
-    }
-
-    @Override
     public boolean isSigningKeySet() {
         return this.pubKeyHash.equals(this.zkSigner.getPublicKeyHash());
     }

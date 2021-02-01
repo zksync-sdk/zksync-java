@@ -21,6 +21,7 @@ import io.zksync.domain.ChainId;
 import io.zksync.domain.fee.TransactionFee;
 import io.zksync.domain.fee.TransactionFeeBatchRequest;
 import io.zksync.domain.fee.TransactionFeeDetails;
+import io.zksync.domain.fee.TransactionFeeRequest;
 import io.zksync.domain.fee.TransactionType;
 import io.zksync.domain.state.AccountState;
 import io.zksync.domain.token.Token;
@@ -70,7 +71,13 @@ public class IntegrationTestFullFlow {
     @Test
     public void setupPublicKey() {
         AccountState state = wallet.getState();
-        TransactionFeeDetails details = wallet.getTransactionFee(TransactionType.CHANGE_PUB_KEY, ETHEREUM_COIN.getAddress());
+        TransactionFeeDetails details = wallet.getProvider().getTransactionFee(
+            TransactionFeeRequest.builder()
+                .transactionType(TransactionType.CHANGE_PUB_KEY)
+                .address(state.getAddress())
+                .tokenIdentifier(ETHEREUM_COIN.getAddress())
+                .build()
+        );
         TransactionFee fee = new TransactionFee(ETHEREUM_COIN.getAddress(), details.getTotalFeeInteger());
         String hash =  wallet.setSigningKey(fee, state.getCommitted().getNonce(), false);
 
@@ -98,7 +105,13 @@ public class IntegrationTestFullFlow {
     @Test
     public void transferFunds() {
         AccountState state = wallet.getState();
-        TransactionFeeDetails details = wallet.getTransactionFee(TransactionType.TRANSFER, "0x4F6071Dbd5818473EEEF6CE563e66bf22618d8c0".toLowerCase(), ETHEREUM_COIN.getAddress());
+        TransactionFeeDetails details = wallet.getProvider().getTransactionFee(
+            TransactionFeeRequest.builder()
+                .transactionType(TransactionType.TRANSFER)
+                .address("0x4F6071Dbd5818473EEEF6CE563e66bf22618d8c0".toLowerCase())
+                .tokenIdentifier(ETHEREUM_COIN.getAddress())
+                .build()
+        );
         TransactionFee fee = new TransactionFee(ETHEREUM_COIN.getAddress(), details.getTotalFeeInteger());
         String hash = wallet.syncTransfer(
             "0x4F6071Dbd5818473EEEF6CE563e66bf22618d8c0".toLowerCase(),
@@ -113,7 +126,13 @@ public class IntegrationTestFullFlow {
     @Test
     public void withdraw() {
         AccountState state = wallet.getState();
-        TransactionFeeDetails details = wallet.getTransactionFee(TransactionType.WITHDRAW, ETHEREUM_COIN.getAddress());
+        TransactionFeeDetails details = wallet.getProvider().getTransactionFee(
+            TransactionFeeRequest.builder()
+                .transactionType(TransactionType.WITHDRAW)
+                .address(state.getAddress())
+                .tokenIdentifier(ETHEREUM_COIN.getAddress())
+                .build()
+        );
         TransactionFee fee = new TransactionFee(ETHEREUM_COIN.getAddress(), details.getTotalFeeInteger());
         String hash = wallet.syncWithdraw(
             state.getAddress(),
@@ -129,7 +148,13 @@ public class IntegrationTestFullFlow {
     @Test 
     public void forcedExit() {
         AccountState state = wallet.getState();
-        TransactionFeeDetails details = wallet.getTransactionFee(TransactionType.FORCED_EXIT, ETHEREUM_COIN.getAddress());
+        TransactionFeeDetails details = wallet.getProvider().getTransactionFee(
+            TransactionFeeRequest.builder()
+                .transactionType(TransactionType.FORCED_EXIT)
+                .address(state.getAddress())
+                .tokenIdentifier(ETHEREUM_COIN.getAddress())
+                .build()
+        );
         TransactionFee fee = new TransactionFee(ETHEREUM_COIN.getAddress(), details.getTotalFeeInteger());
         String hash = wallet.syncForcedExit(
             state.getAddress(),
