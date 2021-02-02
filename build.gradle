@@ -1,8 +1,11 @@
 plugins {
-    id 'java'
+    id 'java-library'
+    id 'maven-publish'
+    id 'signing'
 }
 
 group = 'io.zksync'
+version System.getenv('VERSION')
 sourceCompatibility = '1.8'
 
 configurations {
@@ -13,6 +16,74 @@ configurations {
 
 repositories {
     mavenCentral()
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'zksync'
+            from components.java
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+            pom {
+                name = 'ZkSync SDK'
+                description = 'This repository provides a Java SDK for zkSync developers, which can be used either on PC or Android.'
+                url = 'https://github.com/zksync-sdk/zksync-java'
+                organization {
+                    name = 'Matter Labs'
+                    url = 'https://matter-labs.io'
+                }
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://www.mit.edu/~amini/LICENSE.md'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'mfischuk'
+                        name = 'Maxim Fischuk'
+                        email = 'mfischuk@vareger.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/zksync-sdk/zksync-java'
+                    url = 'https://github.com/zksync-sdk/zksync-java'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots"
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            credentials {
+                username findProperty("sonatypeUsername")
+                password findProperty("sonatypePassword")
+            }
+        }
+    }
+}
+
+
+signing {
+    def signingKeyId = findProperty("signingKeyId")
+    def signingKey = findProperty("signingKey")
+    def signingPassword = findProperty("signingPassword")
+    useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
+    sign publishing.publications.mavenJava
 }
 
 dependencies {

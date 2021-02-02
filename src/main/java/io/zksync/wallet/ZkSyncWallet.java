@@ -42,10 +42,6 @@ public interface ZkSyncWallet {
 
     AccountState getState();
 
-    TransactionFeeDetails getTransactionFee(TransactionType type, String tokenIdentifier);
-
-    TransactionFeeDetails getTransactionFee(TransactionType type, String address, String tokenIdentifier);
-
     Provider getProvider();
 
     EthereumProvider createEthereumProvider(Web3j web3j, ContractGasProvider contractGasProvider);
