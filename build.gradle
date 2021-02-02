@@ -40,6 +40,10 @@ publishing {
                 name = 'ZkSync SDK'
                 description = 'This repository provides a Java SDK for zkSync developers, which can be used either on PC or Android.'
                 url = 'https://github.com/zksync-sdk/zksync-java'
+                organization {
+                    name = 'Matter Labs'
+                    url = 'https://matter-labs.io'
+                }
                 licenses {
                     license {
                         name = 'MIT License'
