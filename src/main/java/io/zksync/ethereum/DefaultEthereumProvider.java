@@ -75,7 +75,7 @@ public class DefaultEthereumProvider implements EthereumProvider {
 
     @Override
     public CompletableFuture<TransactionReceipt> fullExit(Token token, Integer accountId) {
-        return contract.fullExit(BigInteger.valueOf(accountId), token.getAddress()).sendAsync();
+        return contract.requestFullExit(BigInteger.valueOf(accountId), token.getAddress()).sendAsync();
     }
 
     @Override

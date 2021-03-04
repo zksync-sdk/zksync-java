@@ -1,7 +1,10 @@
 package io.zksync.domain.transaction;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+
 import io.zksync.domain.Signature;
+import io.zksync.domain.TimeRange;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,6 +35,9 @@ public class Transfer implements ZkSyncTransaction {
     private Integer nonce;
 
     private Signature signature;
+
+    @JsonUnwrapped
+    private TimeRange timeRange;
 
     @JsonIgnore
     public BigInteger getFeeInteger() {

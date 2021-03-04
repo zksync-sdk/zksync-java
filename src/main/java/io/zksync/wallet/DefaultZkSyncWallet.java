@@ -1,9 +1,9 @@
 package io.zksync.wallet;
 
+import io.zksync.domain.TimeRange;
+import io.zksync.domain.auth.ChangePubKeyECDSA;
+import io.zksync.domain.auth.ChangePubKeyOnchain;
 import io.zksync.domain.fee.TransactionFee;
-import io.zksync.domain.fee.TransactionFeeDetails;
-import io.zksync.domain.fee.TransactionFeeRequest;
-import io.zksync.domain.fee.TransactionType;
 import io.zksync.domain.state.AccountState;
 import io.zksync.domain.token.Token;
 import io.zksync.domain.token.Tokens;
@@ -25,6 +25,7 @@ import java.math.BigInteger;
 
 import org.web3j.protocol.Web3j;
 import org.web3j.tx.gas.ContractGasProvider;
+import org.web3j.utils.Numeric;
 
 public class DefaultZkSyncWallet implements ZkSyncWallet {
 
@@ -59,7 +60,7 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
     }
 
     @Override
-    public String setSigningKey(TransactionFee fee, Integer nonce, boolean onchainAuth) {
+    public String setSigningKey(TransactionFee fee, Integer nonce, boolean onchainAuth, TimeRange timeRange) {
 
         if (isSigningKeySet()) {
             throw new ZkSyncException("Current signing key is already set");
@@ -67,45 +68,47 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
 
         final Integer nonceToUse = nonce == null ? getNonce() : nonce;
 
-        final SignedTransaction<ChangePubKey> signedTx = buildSignedChangePubKeyTx(fee, nonceToUse, onchainAuth);
-
-        return submitSignedTransaction(signedTx.getTransaction(), signedTx.getEthereumSignature(), false);
+        if (onchainAuth) {
+            final SignedTransaction<ChangePubKey<ChangePubKeyOnchain>> signedTx = buildSignedChangePubKeyTxOnchain(fee, nonceToUse, timeRange);
+            return submitSignedTransaction(signedTx.getTransaction(), signedTx.getEthereumSignature(), false);
+        } else {
+            final SignedTransaction<ChangePubKey<ChangePubKeyECDSA>> signedTx = buildSignedChangePubKeyTxSigned(fee, nonceToUse, timeRange);
+            return submitSignedTransaction(signedTx.getTransaction(), signedTx.getEthereumSignature(), false);
+        }
     }
 
     @Override
-    public String syncTransfer(String to, BigInteger amount, TransactionFee fee, Integer nonce) {
+    public String syncTransfer(String to, BigInteger amount, TransactionFee fee, Integer nonce, TimeRange timeRange) {
 
         final Integer nonceToUse = nonce == null ? getNonce() : nonce;
 
-        final SignedTransaction<Transfer> signedTransfer = buildSignedTransferTx(to , fee.getFeeToken(), amount, fee.getFee(), nonceToUse);
+        final SignedTransaction<Transfer> signedTransfer = buildSignedTransferTx(to, fee.getFeeToken(), amount,
+                fee.getFee(), nonceToUse, timeRange);
 
         return submitSignedTransaction(signedTransfer.getTransaction(), signedTransfer.getEthereumSignature(), false);
     }
 
     @Override
-    public String syncWithdraw(String ethAddress,
-                               BigInteger amount,
-                               TransactionFee fee,
-                               Integer nonce,
-                               boolean fastProcessing) {
+    public String syncWithdraw(String ethAddress, BigInteger amount, TransactionFee fee, Integer nonce,
+            boolean fastProcessing, TimeRange timeRange) {
         final Integer nonceToUse = nonce == null ? getNonce() : nonce;
 
-        final SignedTransaction<Withdraw> signedWithdraw =
-                buildSignedWithdrawTx(ethAddress, fee.getFeeToken(), amount, fee.getFee(), nonceToUse);
+        final SignedTransaction<Withdraw> signedWithdraw = buildSignedWithdrawTx(ethAddress, fee.getFeeToken(), amount,
+                fee.getFee(), nonceToUse, timeRange);
 
-        return submitSignedTransaction(
-                signedWithdraw.getTransaction(), signedWithdraw.getEthereumSignature(), fastProcessing);
+        return submitSignedTransaction(signedWithdraw.getTransaction(), signedWithdraw.getEthereumSignature(),
+                fastProcessing);
     }
 
     @Override
-    public String syncForcedExit(String target, TransactionFee fee, Integer nonce) {
+    public String syncForcedExit(String target, TransactionFee fee, Integer nonce, TimeRange timeRange) {
         final Integer nonceToUse = nonce == null ? getNonce() : nonce;
 
-        final SignedTransaction<ForcedExit> signedForcedExit =
-                buildSignedForcedExitTx(target, fee.getFeeToken(), fee.getFee(), nonceToUse);
+        final SignedTransaction<ForcedExit> signedForcedExit = buildSignedForcedExitTx(target, fee.getFeeToken(),
+                fee.getFee(), nonceToUse, timeRange);
 
-        return submitSignedTransaction(
-                signedForcedExit.getTransaction(), signedForcedExit.getEthereumSignature(), false);
+        return submitSignedTransaction(signedForcedExit.getTransaction(), signedForcedExit.getEthereumSignature(),
+                false);
     }
 
     @Override
@@ -119,33 +122,57 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
     }
 
     @SneakyThrows
-    private SignedTransaction<ChangePubKey> buildSignedChangePubKeyTx(TransactionFee fee, Integer nonce, boolean onchainAuth) {
+    private SignedTransaction<ChangePubKey<ChangePubKeyECDSA>> buildSignedChangePubKeyTxSigned(TransactionFee fee, Integer nonce,
+            TimeRange timeRange) {
         if (zkSigner == null) {
             throw new Error("ZKSync signer is required for current pubkey calculation.");
         }
 
         final Token token = provider.getTokens().getToken(fee.getFeeToken());
 
-        final ChangePubKey changePubKey = ChangePubKey
-                .builder()
+        final ChangePubKey<ChangePubKeyECDSA> changePubKey = ChangePubKey
+            .<ChangePubKeyECDSA>builder()
+            .accountId(accountId)
+            .account(ethSigner.getAddress())
+            .newPkHash(zkSigner.getPublicKeyHash())
+            .nonce(nonce).feeToken(token.getId())
+            .fee(fee.getFee().toString())
+            .timeRange(timeRange)
+            .build();
+
+
+        ChangePubKeyECDSA auth = new ChangePubKeyECDSA(null,
+                    Numeric.toHexStringWithPrefixZeroPadded(BigInteger.ZERO, 32));
+        EthSignature ethSignature = ethSigner.signChangePubKey(zkSigner.getPublicKeyHash(), nonce, accountId, auth).get();
+        auth.setEthSignature(ethSignature.getSignature());
+
+        changePubKey.setEthAuthData(auth);
+
+        return new SignedTransaction<>(zkSigner.signChangePubKey(changePubKey), ethSignature);
+    }
+
+    @SneakyThrows
+    private SignedTransaction<ChangePubKey<ChangePubKeyOnchain>> buildSignedChangePubKeyTxOnchain(TransactionFee fee, Integer nonce,
+            TimeRange timeRange) {
+        if (zkSigner == null) {
+            throw new Error("ZKSync signer is required for current pubkey calculation.");
+        }
+
+        final Token token = provider.getTokens().getToken(fee.getFeeToken());
+
+        final ChangePubKey<ChangePubKeyOnchain> changePubKey = ChangePubKey
+                .<ChangePubKeyOnchain>builder()
                 .accountId(accountId)
                 .account(ethSigner.getAddress())
                 .newPkHash(zkSigner.getPublicKeyHash())
                 .nonce(nonce)
                 .feeToken(token.getId())
                 .fee(fee.getFee().toString())
+                .ethAuthData(new ChangePubKeyOnchain())
+                .timeRange(timeRange)
                 .build();
 
-        EthSignature ethSignature = null;
-
-        if (!onchainAuth) {
-            ethSignature = ethSigner.signChangePubKey(
-                    zkSigner.getPublicKeyHash(), nonce, accountId).get();
-
-            changePubKey.setEthSignature(ethSignature.getSignature());
-        }
-
-        return new SignedTransaction<>(zkSigner.signChangePubKey(changePubKey), ethSignature);
+        return new SignedTransaction<>(zkSigner.signChangePubKey(changePubKey), null);
     }
 
     @SneakyThrows
@@ -153,7 +180,8 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
                                                               String tokenIdentifier,
                                                               BigInteger amount,
                                                               BigInteger fee,
-                                                              Integer nonce) {
+                                                              Integer nonce,
+                                                              TimeRange timeRange) {
         if (zkSigner == null) {
             throw new Error("ZKSync signer is required for current pubkey calculation.");
         }
@@ -172,6 +200,7 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
                 .amount(amount)
                 .nonce(nonce)
                 .fee(fee.toString())
+                .timeRange(timeRange)
                 .build();
 
         final EthSignature ethSignature = ethSigner.signTransfer(
@@ -181,7 +210,7 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
     }
 
     @SneakyThrows
-    private SignedTransaction<Withdraw> buildSignedWithdrawTx(String to, String tokenIdentifier, BigInteger amount, BigInteger fee, Integer nonce) {
+    private SignedTransaction<Withdraw> buildSignedWithdrawTx(String to, String tokenIdentifier, BigInteger amount, BigInteger fee, Integer nonce, TimeRange timeRange) {
         if (zkSigner == null) {
             throw new Error("ZKSync signer is required for current pubkey calculation.");
         }
@@ -200,6 +229,7 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
                 .amount(amount)
                 .nonce(nonce)
                 .fee(fee.toString())
+                .timeRange(timeRange)
                 .build();
 
         final EthSignature ethSignature = ethSigner.signWithdraw(
@@ -211,7 +241,8 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
     private SignedTransaction<ForcedExit> buildSignedForcedExitTx(String target,
                                                                 String tokenIdentifier,
                                                                 BigInteger fee,
-                                                                Integer nonce) {
+                                                                Integer nonce,
+                                                                TimeRange timeRange) {
         if (zkSigner == null) {
             throw new Error("ZKSync signer is required for current pubkey calculation.");
         }
@@ -227,6 +258,7 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
                 .token(token.getId())
                 .nonce(nonce)
                 .fee(fee.toString())
+                .timeRange(timeRange)
                 .build();
 
         return new SignedTransaction<>(zkSigner.signForcedExit(forcedExit), null);

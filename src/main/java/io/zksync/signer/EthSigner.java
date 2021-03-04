@@ -6,6 +6,7 @@ import java.util.concurrent.CompletableFuture;
 
 import org.web3j.tx.TransactionManager;
 
+import io.zksync.domain.auth.ChangePubKeyVariant;
 import io.zksync.domain.token.Token;
 
 public interface EthSigner {
@@ -32,7 +33,7 @@ public interface EthSigner {
      * @param accountId - Id of the account in ZkSync
      * @return Signature object
      */
-    CompletableFuture<EthSignature> signChangePubKey(String pubKeyHash, Integer nonce, Integer accountId);
+    CompletableFuture<EthSignature> signChangePubKey(String pubKeyHash, Integer nonce, Integer accountId, ChangePubKeyVariant changePubKeyVariant);
 
     /**
      * Sign ZkSync `Transfer` operation message
@@ -66,7 +67,7 @@ public interface EthSigner {
      * @param message - Message to sign
      * @return Signature object
      */
-    CompletableFuture<EthSignature> signMessage(String message);
+    CompletableFuture<EthSignature> signMessage(byte[] message);
 
     /**
      * Sign raw message
@@ -75,7 +76,7 @@ public interface EthSigner {
      * @param addPrefix - If true then add secure prefix (https://eips.ethereum.org/EIPS/eip-712)
      * @return
      */
-    CompletableFuture<EthSignature> signMessage(String message, boolean addPrefix);
+    CompletableFuture<EthSignature> signMessage(byte[] message, boolean addPrefix);
 
     /**
      * Verify signature with raw message
@@ -86,7 +87,7 @@ public interface EthSigner {
      * @throws SignatureException If the public key could not be recovered or if there was a
      *     signature format error.
      */
-    CompletableFuture<Boolean> verifySignature(EthSignature signature, String message) throws SignatureException;
+    CompletableFuture<Boolean> verifySignature(EthSignature signature, byte[] message) throws SignatureException;
 
     /**
      * Verify signature with raw message
@@ -98,6 +99,6 @@ public interface EthSigner {
      * @throws SignatureException If the public key could not be recovered or if there was a
      *     signature format error.
      */
-    CompletableFuture<Boolean> verifySignature(EthSignature signature, String message, boolean prefixed) throws SignatureException;
+    CompletableFuture<Boolean> verifySignature(EthSignature signature, byte[] message, boolean prefixed) throws SignatureException;
 
 }

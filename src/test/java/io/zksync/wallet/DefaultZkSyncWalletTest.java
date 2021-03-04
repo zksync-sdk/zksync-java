@@ -5,6 +5,8 @@ import org.junit.Test;
 
 import io.zksync.domain.ChainId;
 import io.zksync.domain.Signature;
+import io.zksync.domain.TimeRange;
+import io.zksync.domain.auth.ChangePubKeyOnchain;
 import io.zksync.domain.fee.TransactionFee;
 import io.zksync.domain.state.AccountState;
 import io.zksync.domain.state.DepositingBalance;
@@ -54,14 +56,12 @@ public class DefaultZkSyncWalletTest {
         when(provider.getState(anyString())).thenReturn(defaultAccountState(55));
         ZkSyncWallet wallet = ZkSyncWallet.build(ethSigner, zkSigner, provider);
         Token token = defaultToken();
-        EthSignature ethSignature = new EthSignature(SignatureType.EthereumSignature,
-                "0xe062aca0dd8438174f424a26f3dd528ca9bd98366b2dafd6c6735eeaccd9e787245ac7dbbe2a37e3a74f168e723c5a2c613de25795a056bc81ff4c8d4106e56f1c");
 
         when(provider.getTokens()).thenReturn(new Tokens(Collections.singletonMap(token.getAddress(), token)));
-        when(provider.submitTx(defaultZkSyncTransaction_ChangePubKey(), ethSignature, false))
+        when(provider.submitTx(defaultZkSyncTransaction_ChangePubKey(), null, false))
                 .thenReturn("success:hash");
 
-        String response = wallet.setSigningKey(defaultTransactionFee(1000000000), 13, false);
+        String response = wallet.setSigningKey(defaultTransactionFee(1000000000), 13, true, new TimeRange(0, 4294967295L));
 
         assertNotNull(response);
         assertEquals(response, "success:hash");
@@ -72,11 +72,11 @@ public class DefaultZkSyncWalletTest {
         Provider provider = wallet.getProvider();
         Token token = defaultToken();
         EthSignature ethSignature = new EthSignature(SignatureType.EthereumSignature,
-                "0x6f7e631024b648e8d3984f84aa14d4f1b1013191042ef51b6443e3f25b075a0346988ab824687041ce699a91ed6e20bedff7c730aac3d8c7a111dd408c1862e41c");
+                "0x4684a8f03c5da84676ff4eae89984f20057ce288b3a072605cbf93ef4bcc8a021306b13a88c6d3adc68347f4b68b1cbdf967861005e934afa50ce2e0c5bced791b");
         when(provider.getTokens()).thenReturn(new Tokens(Collections.singletonMap(token.getAddress(), token)));
         when(provider.submitTx(defaultZkSyncTransaction_Transfer(), ethSignature, false)).thenReturn("success:hash");
         String response = wallet.syncTransfer("0x19aa2ed8712072e918632259780e587698ef58df",
-                BigInteger.valueOf(1000000000000L), defaultTransactionFee(1000000), 12);
+                BigInteger.valueOf(1000000000000L), defaultTransactionFee(1000000), 12, new TimeRange(0, 4294967295L));
         assertNotNull(response);
         assertEquals(response, "success:hash");
     }
@@ -85,7 +85,7 @@ public class DefaultZkSyncWalletTest {
     public void testSyncWithdraw() {
         Provider provider = wallet.getProvider();
         Token token = defaultToken();
-        EthSignature ethSignature = new EthSignature(SignatureType.EthereumSignature, "0xaa6ea9d9b06457c2652f80707b7ab35ba3b5b4ef593624773d00660dd5f9174215b327be358c9bd2ae539ae5220d47033d252506119a46cd898b42ae2bb366891c");
+        EthSignature ethSignature = new EthSignature(SignatureType.EthereumSignature, "0xa87d458c96f2b78c8b615c7703540d5af0c0b5266b12dbd648d8f6824958ed907f40cae683fa77e7a8a5780381cae30a94acf67f880ed30483c5a8480816fc9d1c");
         when(provider.getTokens()).thenReturn(new Tokens(Collections.singletonMap(token.getAddress(), token)));
         when(provider.submitTx(defaultZkSyncTransaction_Withdraw(), ethSignature, false)).thenReturn("success:hash");
         String response = wallet.syncWithdraw(
@@ -93,7 +93,8 @@ public class DefaultZkSyncWalletTest {
             BigInteger.valueOf(1000000000000L),
             defaultTransactionFee(1000000),
             12,
-            false
+            false,
+            new TimeRange(0, 4294967295L)
         );
         assertNotNull(response);
         assertEquals(response, "success:hash");
@@ -108,7 +109,8 @@ public class DefaultZkSyncWalletTest {
         String response = wallet.syncForcedExit(
             "0x19aa2ed8712072e918632259780e587698ef58df",
             defaultTransactionFee(1000000),
-            12
+            12,
+            new TimeRange(0, 4294967295L)
         );
         assertNotNull(response);
         assertEquals(response, "success:hash");
@@ -166,8 +168,8 @@ public class DefaultZkSyncWalletTest {
         return fee;
     }
 
-    private ChangePubKey defaultZkSyncTransaction_ChangePubKey() {
-        ChangePubKey tx = new ChangePubKey(
+    private ChangePubKey<ChangePubKeyOnchain> defaultZkSyncTransaction_ChangePubKey() {
+        ChangePubKey<ChangePubKeyOnchain> tx = new ChangePubKey<>(
             55,
             "0xede35562d3555e61120a151b3c8e8e91d83a378a",
             "sync:18e8446d7748f2de52b28345bdbc76160e6b35eb",
@@ -176,9 +178,10 @@ public class DefaultZkSyncWalletTest {
             13,
             Signature.builder()
                 .pubKey("40771354dc314593e071eaf4d0f42ccb1fad6c7006c57464feeb7ab5872b7490")
-                .signature("74a6c035f3471b3e441ff60b792d4ea74f69acb1d91682fc657594d5d1add50beb9e7450d7f782ecadfe45ad872c5e7a8da4ad3dadcd58a08534df45f1617e05")
+                .signature("3c206b2d9b6dc055aba53ccbeca6c1620a42fc45bdd66282618fd1f055fdf90c00101973507694fb66edaa5d4591a2b4f56bbab876dc7579a17c7fe309c80301")
                 .build(),
-            "0xe062aca0dd8438174f424a26f3dd528ca9bd98366b2dafd6c6735eeaccd9e787245ac7dbbe2a37e3a74f168e723c5a2c613de25795a056bc81ff4c8d4106e56f1c"
+            new ChangePubKeyOnchain(),
+            new TimeRange(0, 4294967295L)
         );
         return tx;
     }
@@ -192,8 +195,9 @@ public class DefaultZkSyncWalletTest {
             12,
             Signature.builder()
                 .pubKey("40771354dc314593e071eaf4d0f42ccb1fad6c7006c57464feeb7ab5872b7490")
-                .signature("62fa1d2f56e1d9a422fbf689cc27ff9da6a33ee9add6d47d4afdf4657b0a93146da6f720e06e2b3894b7ab645eb07d3cd1576710157848f5cb04809e0e2f3a04")
-                .build()
+                .signature("5e5089771f94222d64ad7d4a8853bf83d53bf3c063b91250ece46ccefd45d19a1313aee79f19e73dcf11f12ae0fb8c3fdb83bf4fa704384c5c82b4de0831ea03")
+                .build(),
+            new TimeRange(0, 4294967295L)
         );
         return tx;
     }
@@ -209,8 +213,9 @@ public class DefaultZkSyncWalletTest {
             12,
             Signature.builder()
                 .pubKey("40771354dc314593e071eaf4d0f42ccb1fad6c7006c57464feeb7ab5872b7490")
-                .signature("3025a85f9f953f67f7f60cdc97fc77496afb5c83ed622eff27dc5f2a51d8f189496df563aa3eb1274b2254649a4c572f920b8b90105d0eb14ea16a4e789ed303")
-                .build()
+                .signature("849281ea1b3a97b3fe30fbd25184db3e7860db96e3be9d53cf643bd5cf7805a30dbf685c1e63fd75968a61bd83d3a1fb3a0b1c68c71fe87d96f1c1cb7de45b05")
+                .build(),
+            new TimeRange(0, 4294967295L)
         );
         return tx;
     }
@@ -226,8 +231,9 @@ public class DefaultZkSyncWalletTest {
             12,
             Signature.builder()
                 .pubKey("40771354dc314593e071eaf4d0f42ccb1fad6c7006c57464feeb7ab5872b7490")
-                .signature("f1837e30472ae13f7ddd09163de86e73e864e068bc252f83bed2e17f1671b90b276a6008ba5d25a65f8c81236982d47512adaef8bb0da922ffa226957a939b02")
-                .build()
+                .signature("ee8b58e252ecdf76fc4275e87c88072d0c4d50b53c40ac3fd83a396f0989d108d92983a943f08c7ca5a63d9be891185867b89c2450f4d9b73526e1c35c4bf600")
+                .build(),
+            new TimeRange(0, 4294967295L)
         );
         return tx;
     }
