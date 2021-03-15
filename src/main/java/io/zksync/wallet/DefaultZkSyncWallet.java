@@ -70,10 +70,10 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
 
         if (onchainAuth) {
             final SignedTransaction<ChangePubKey<ChangePubKeyOnchain>> signedTx = buildSignedChangePubKeyTxOnchain(fee, nonceToUse, timeRange);
-            return submitSignedTransaction(signedTx.getTransaction(), signedTx.getEthereumSignature(), false);
+            return submitSignedTransaction(signedTx.getTransaction(), null, false);
         } else {
             final SignedTransaction<ChangePubKey<ChangePubKeyECDSA>> signedTx = buildSignedChangePubKeyTxSigned(fee, nonceToUse, timeRange);
-            return submitSignedTransaction(signedTx.getTransaction(), signedTx.getEthereumSignature(), false);
+            return submitSignedTransaction(signedTx.getTransaction(), null, false);
         }
     }
 
@@ -142,7 +142,7 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
 
 
         ChangePubKeyECDSA auth = new ChangePubKeyECDSA(null,
-                    Numeric.toHexStringWithPrefixZeroPadded(BigInteger.ZERO, 32));
+                    Numeric.toHexString(Numeric.toBytesPadded(BigInteger.ZERO, 32)));
         EthSignature ethSignature = ethSigner.signChangePubKey(zkSigner.getPublicKeyHash(), nonce, accountId, auth).get();
         auth.setEthSignature(ethSignature.getSignature());
 
