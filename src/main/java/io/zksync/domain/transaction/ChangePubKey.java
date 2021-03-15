@@ -1,7 +1,11 @@
 package io.zksync.domain.transaction;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+
 import io.zksync.domain.Signature;
+import io.zksync.domain.TimeRange;
+import io.zksync.domain.auth.ChangePubKeyVariant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +17,7 @@ import java.math.BigInteger;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChangePubKey implements ZkSyncTransaction {
+public class ChangePubKey <T extends ChangePubKeyVariant> implements ZkSyncTransaction {
 
     private final String type = "ChangePubKey";
 
@@ -31,7 +35,10 @@ public class ChangePubKey implements ZkSyncTransaction {
 
     private Signature signature;
 
-    private String ethSignature;
+    private T ethAuthData;
+
+    @JsonUnwrapped
+    private TimeRange timeRange;
 
     @JsonIgnore
     public BigInteger getFeeInteger() {

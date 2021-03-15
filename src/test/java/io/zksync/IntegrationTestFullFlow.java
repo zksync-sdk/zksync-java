@@ -18,6 +18,7 @@ import org.web3j.utils.Convert;
 import org.web3j.utils.Convert.Unit;
 
 import io.zksync.domain.ChainId;
+import io.zksync.domain.TimeRange;
 import io.zksync.domain.fee.TransactionFee;
 import io.zksync.domain.fee.TransactionFeeBatchRequest;
 import io.zksync.domain.fee.TransactionFeeDetails;
@@ -79,7 +80,7 @@ public class IntegrationTestFullFlow {
                 .build()
         );
         TransactionFee fee = new TransactionFee(ETHEREUM_COIN.getAddress(), details.getTotalFeeInteger());
-        String hash =  wallet.setSigningKey(fee, state.getCommitted().getNonce(), false);
+        String hash =  wallet.setSigningKey(fee, state.getCommitted().getNonce(), false, new TimeRange(0, 4294967295L));
 
         System.out.println(hash);
     }
@@ -117,7 +118,8 @@ public class IntegrationTestFullFlow {
             "0x4F6071Dbd5818473EEEF6CE563e66bf22618d8c0".toLowerCase(),
             Convert.toWei(BigDecimal.valueOf(1000000), Unit.GWEI).toBigInteger(),
             fee,
-            state.getCommitted().getNonce()
+            state.getCommitted().getNonce(),
+            new TimeRange(0, 4294967295L)
         );
 
         System.out.println(hash);
@@ -139,7 +141,8 @@ public class IntegrationTestFullFlow {
             Convert.toWei(BigDecimal.valueOf(1000), Unit.GWEI).toBigInteger(),
             fee,
             state.getCommitted().getNonce(),
-            false
+            false,
+            new TimeRange(0, 4294967295L)
         );
 
         System.out.println(hash);
@@ -159,7 +162,8 @@ public class IntegrationTestFullFlow {
         String hash = wallet.syncForcedExit(
             state.getAddress(),
             fee,
-            state.getCommitted().getNonce()
+            state.getCommitted().getNonce(),
+            new TimeRange(0, 4294967295L)
         );
 
         System.out.println(hash);

@@ -38,8 +38,8 @@ public class HttpTransport implements ZkSyncTransport {
                     .method(method)
                     .params(params)
                     .build();
-
-            final RequestBody body = RequestBody.create(objectMapper.writeValueAsString(zkRequest), APPLICATION_JSON);
+            final String bodyJson = objectMapper.writeValueAsString(zkRequest);
+            final RequestBody body = RequestBody.create(bodyJson, APPLICATION_JSON);
 
             final Request request = new Request.Builder()
                     .url(url)

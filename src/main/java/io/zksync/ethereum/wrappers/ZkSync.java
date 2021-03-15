@@ -45,7 +45,7 @@ public class ZkSync extends Contract {
 
     public static final String FUNC_EXIT = "exit";
 
-    public static final String FUNC_FULLEXIT = "fullExit";
+    public static final String FUNC_FULLEXIT = "requestFullExit";
 
     public static final String FUNC_GETNOTICEPERIOD = "getNoticePeriod";
 
@@ -175,7 +175,7 @@ public class ZkSync extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteFunctionCall<TransactionReceipt> fullExit(BigInteger _accountId, String _token) {
+    public RemoteFunctionCall<TransactionReceipt> requestFullExit(BigInteger _accountId, String _token) {
         final Function function = new Function(
                 FUNC_FULLEXIT, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint32(_accountId), 

@@ -2,6 +2,7 @@ package io.zksync.signer;
 
 import io.zksync.domain.ChainId;
 import io.zksync.domain.Signature;
+import io.zksync.domain.auth.ChangePubKeyVariant;
 import io.zksync.domain.transaction.ChangePubKey;
 import io.zksync.domain.transaction.ForcedExit;
 import io.zksync.domain.transaction.Transfer;
@@ -74,7 +75,7 @@ public class ZkSigner {
         if (chainId != ChainId.Mainnet) {
             message = String.format("%s\nChain ID: %d.", MESSAGE, chainId.getId());
         }
-        EthSignature signature = ethSigner.signMessage(message, true).get();
+        EthSignature signature = ethSigner.signMessage(message.getBytes(), true).get();
         if (signature.getType() != SignatureType.EthereumSignature) {
             throw new ZkSyncIncorrectCredentialsException("Invalid signature type: " + signature.getType());
         }
@@ -105,7 +106,7 @@ public class ZkSigner {
         return Numeric.toHexString(publicKey.getData());
     }
 
-    public ChangePubKey signChangePubKey(ChangePubKey changePubKey) {
+    public <T extends ChangePubKeyVariant> ChangePubKey<T> signChangePubKey(ChangePubKey<T> changePubKey) {
         try {
             final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             outputStream.write(0x07);
@@ -115,6 +116,8 @@ public class ZkSigner {
             outputStream.write(tokenIdToBytes(changePubKey.getFeeToken()));
             outputStream.write(feeToBytes(changePubKey.getFeeInteger()));
             outputStream.write(nonceToBytes(changePubKey.getNonce()));
+            outputStream.write(numberToBytesBE(changePubKey.getTimeRange().getValidFrom(), 8));
+            outputStream.write(numberToBytesBE(changePubKey.getTimeRange().getValidUntil(), 8));
 
             byte[] message = outputStream.toByteArray();
 
@@ -139,6 +142,8 @@ public class ZkSigner {
             outputStream.write(amountPackedToBytes(transfer.getAmount()));
             outputStream.write(feeToBytes(transfer.getFeeInteger()));
             outputStream.write(nonceToBytes(transfer.getNonce()));
+            outputStream.write(numberToBytesBE(transfer.getTimeRange().getValidFrom(), 8));
+            outputStream.write(numberToBytesBE(transfer.getTimeRange().getValidUntil(), 8));
 
             byte[] message = outputStream.toByteArray();
 
@@ -163,6 +168,8 @@ public class ZkSigner {
             outputStream.write(amountFullToBytes(withdraw.getAmount()));
             outputStream.write(feeToBytes(withdraw.getFeeInteger()));
             outputStream.write(nonceToBytes(withdraw.getNonce()));
+            outputStream.write(numberToBytesBE(withdraw.getTimeRange().getValidFrom(), 8));
+            outputStream.write(numberToBytesBE(withdraw.getTimeRange().getValidUntil(), 8));
 
             byte[] message = outputStream.toByteArray();
 
@@ -185,6 +192,8 @@ public class ZkSigner {
             outputStream.write(tokenIdToBytes(forcedExit.getToken()));
             outputStream.write(feeToBytes(forcedExit.getFeeInteger()));
             outputStream.write(nonceToBytes(forcedExit.getNonce()));
+            outputStream.write(numberToBytesBE(forcedExit.getTimeRange().getValidFrom(), 8));
+            outputStream.write(numberToBytesBE(forcedExit.getTimeRange().getValidUntil(), 8));
 
             byte[] message = outputStream.toByteArray();
 

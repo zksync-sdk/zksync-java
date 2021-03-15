@@ -1,8 +1,7 @@
 package io.zksync.wallet;
 
+import io.zksync.domain.TimeRange;
 import io.zksync.domain.fee.TransactionFee;
-import io.zksync.domain.fee.TransactionFeeDetails;
-import io.zksync.domain.fee.TransactionType;
 import io.zksync.domain.state.AccountState;
 import io.zksync.ethereum.EthereumProvider;
 import io.zksync.provider.DefaultProvider;
@@ -26,17 +25,18 @@ public interface ZkSyncWallet {
         return new DefaultZkSyncWallet(ethSigner, zkSigner, provider);
     }
 
-    String setSigningKey(TransactionFee fee, Integer nonce, boolean onchainAuth);
+    String setSigningKey(TransactionFee fee, Integer nonce, boolean onchainAuth, TimeRange timeRange);
 
-    String syncTransfer(String to, BigInteger amount, TransactionFee fee, Integer nonce);
+    String syncTransfer(String to, BigInteger amount, TransactionFee fee, Integer nonce, TimeRange timeRange);
 
     String syncWithdraw(String ethAddress,
                         BigInteger amount,
                         TransactionFee fee,
                         Integer nonce,
-                        boolean fastProcessing);
+                        boolean fastProcessing,
+                        TimeRange timeRange);
 
-    String syncForcedExit(String target, TransactionFee fee, Integer nonce);
+    String syncForcedExit(String target, TransactionFee fee, Integer nonce, TimeRange timeRange);
 
     boolean isSigningKeySet();
 
