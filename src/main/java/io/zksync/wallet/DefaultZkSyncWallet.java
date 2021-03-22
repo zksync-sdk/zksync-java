@@ -238,6 +238,7 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
         return new SignedTransaction<>(zkSigner.signWithdraw(withdraw), ethSignature);
     }
 
+    @SneakyThrows
     private SignedTransaction<ForcedExit> buildSignedForcedExitTx(String target,
                                                                 String tokenIdentifier,
                                                                 BigInteger fee,
@@ -260,8 +261,11 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
                 .fee(fee.toString())
                 .timeRange(timeRange)
                 .build();
+        
+        final EthSignature ethSignature = ethSigner.signForcedExit(
+            target, nonce, provider.getTokens().getToken(tokenIdentifier), fee).get();
 
-        return new SignedTransaction<>(zkSigner.signForcedExit(forcedExit), null);
+        return new SignedTransaction<>(zkSigner.signForcedExit(forcedExit), ethSignature);
     }
 
     private String submitSignedTransaction(ZkSyncTransaction signedTransaction,
