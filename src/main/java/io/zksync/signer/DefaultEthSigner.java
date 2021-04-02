@@ -84,6 +84,10 @@ public class DefaultEthSigner implements EthSigner {
         return signMessage(getWithdrawMessage(to, accountId, nonce, amount, token, fee).getBytes());
     }
 
+    public CompletableFuture<EthSignature> signForcedExit(String to, Integer nonce, Token token, BigInteger fee) {
+        return signMessage(getForcedExitMessage(to, nonce, token, fee).getBytes());
+    }
+
     public CompletableFuture<EthSignature> signMessage(byte[] message) {
         return signMessage(message, true);
     }

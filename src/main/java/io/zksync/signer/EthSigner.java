@@ -62,6 +62,17 @@ public interface EthSigner {
     CompletableFuture<EthSignature> signWithdraw(String to, Integer accountId, Integer nonce, BigInteger amount, Token token, BigInteger fee);
 
     /**
+     * Sign ZkSync `ForcedExit` operation message
+     * 
+     * @param to - Address of receiver
+     * @param nonce - Nonce of the account
+     * @param token - Token object supported by ZkSync
+     * @param fee - Cost of transaction in ZkSync network
+     * @return Signature object
+     */
+    CompletableFuture<EthSignature> signForcedExit(String to, Integer nonce, Token token, BigInteger fee);
+
+    /**
      * Sign raw message
      * 
      * @param message - Message to sign
