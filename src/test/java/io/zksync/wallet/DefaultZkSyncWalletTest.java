@@ -104,8 +104,9 @@ public class DefaultZkSyncWalletTest {
     public void testSyncForceExit() {
         Provider provider = wallet.getProvider();
         Token token = defaultToken();
+        EthSignature ethSignature = new EthSignature(SignatureType.EthereumSignature, "0x4db4eaa3ca3c1b750bc95361847c7dcda5bcc08644f5a80590c604d728f5a01f52bc767a15e8d6fc8293c3ac46f8fbb3ae4aa4bd3db7db1b0ec8959e63b1861e1c");
         when(provider.getTokens()).thenReturn(new Tokens(Collections.singletonMap(token.getAddress(), token)));
-        when(provider.submitTx(defaultZkSyncTransaction_ForceExit(), null, false)).thenReturn("success:hash");
+        when(provider.submitTx(defaultZkSyncTransaction_ForceExit(), ethSignature, false)).thenReturn("success:hash");
         String response = wallet.syncForcedExit(
             "0x19aa2ed8712072e918632259780e587698ef58df",
             defaultTransactionFee(1000000),
