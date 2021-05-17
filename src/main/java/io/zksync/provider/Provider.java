@@ -152,4 +152,14 @@ public interface Provider {
         return new DefaultProvider(transport);
     }
 
+    static Provider betaProvider(ChainId chainId) {
+        HttpTransport transport = null;
+        switch (chainId) {
+            case Rinkeby: transport = new HttpTransport("https://rinkeby-beta-api.zksync.io/jsrpc"); break;
+            case Ropsten: transport = new HttpTransport("https://ropsten-beta-api.zksync.io/jsrpc"); break;
+            default: throw new IllegalArgumentException("Unsupported beta network for given chain id");
+        }
+        return new DefaultProvider(transport);
+    }
+
 }
