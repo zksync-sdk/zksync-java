@@ -16,7 +16,7 @@ import java.math.RoundingMode;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Token {
+public class Token implements TokenId {
 
     private Integer id;
 

@@ -5,6 +5,7 @@ import io.zksync.domain.auth.ChangePubKeyECDSA;
 import io.zksync.domain.auth.ChangePubKeyOnchain;
 import io.zksync.domain.fee.TransactionFee;
 import io.zksync.domain.state.AccountState;
+import io.zksync.domain.token.NFT;
 import io.zksync.domain.token.Token;
 import io.zksync.domain.token.Tokens;
 import io.zksync.domain.transaction.*;
@@ -22,7 +23,11 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 
 import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.web3j.protocol.Web3j;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.utils.Numeric;
@@ -112,6 +117,72 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
     }
 
     @Override
+    public String syncMintNFT(String recipient, String contentHash, TransactionFee fee, Integer nonce) {
+        final Integer nonceToUse = nonce == null ? getNonce() : nonce;
+
+        final SignedTransaction<MintNFT> signedMintNFT = buildSignedMintNFTTx(recipient, contentHash, fee.getFeeToken(),
+                fee.getFee(), nonceToUse);
+
+        return submitSignedTransaction(signedMintNFT.getTransaction(), signedMintNFT.getEthereumSignature(),
+                false);
+    }
+
+    @Override
+    public String syncWithdrawNFT(String to, NFT token, TransactionFee fee, Integer nonce, TimeRange timeRange) {
+        final Integer nonceToUse = nonce == null ? getNonce() : nonce;
+
+        final SignedTransaction<WithdrawNFT> signedWithdrawNFT = buildSignedWithdrawNFTTx(to, token, fee.getFeeToken(), fee.getFee(), nonceToUse, timeRange);
+
+        return submitSignedTransaction(signedWithdrawNFT.getTransaction(), signedWithdrawNFT.getEthereumSignature(), false);
+    }
+
+    @SneakyThrows
+    @Override
+    public List<String> syncTransferNFT(String to, NFT token, TransactionFee fee, Integer nonce, TimeRange timeRange) {
+        final Integer nonceToUse = nonce == null ? getNonce() : nonce;
+        final Tokens tokens = provider.getTokens();
+
+        final Token feeToken = tokens.getTokenBySymbol(fee.getFeeToken()) != null ?
+                tokens.getTokenBySymbol(fee.getFeeToken()) : tokens.getTokenByAddress(fee.getFeeToken());
+
+        final Transfer transferNft = Transfer
+                .builder()
+                .accountId(accountId)
+                .from(ethSigner.getAddress())
+                .to(to)
+                .token(token.getId())
+                .tokenId(token)
+                .amount(BigInteger.ONE)
+                .nonce(nonceToUse)
+                .fee(BigInteger.ZERO.toString())
+                .timeRange(timeRange)
+                .build();
+        final Transfer transferFee = Transfer
+                .builder()
+                .accountId(accountId)
+                .from(ethSigner.getAddress())
+                .to(ethSigner.getAddress())
+                .token(feeToken.getId())
+                .tokenId(feeToken)
+                .amount(BigInteger.ZERO)
+                .nonce(nonceToUse + 1)
+                .fee(fee.getFee().toString())
+                .timeRange(timeRange)
+                .build();
+        EthSignature ethSignature = ethSigner.signBatch(Arrays.asList(transferNft, transferFee), nonceToUse, feeToken, fee.getFee()).get();
+        return submitSignedBatch(Arrays.asList(
+            zkSigner.signTransfer(transferNft),
+            zkSigner.signTransfer(transferFee)
+        ), ethSignature);
+    }
+
+    @Override
+    public String syncSwap(TransactionFee fee, Integer nonce) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
     public AccountState getState() {
         return provider.getState(ethSigner.getAddress());
     }
@@ -143,10 +214,10 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
 
         ChangePubKeyECDSA auth = new ChangePubKeyECDSA(null,
                     Numeric.toHexString(Numeric.toBytesPadded(BigInteger.ZERO, 32)));
-        EthSignature ethSignature = ethSigner.signChangePubKey(zkSigner.getPublicKeyHash(), nonce, accountId, auth).get();
+        changePubKey.setEthAuthData(auth);
+        EthSignature ethSignature = ethSigner.signTransaction(changePubKey, nonce, token, fee.getFee()).get();
         auth.setEthSignature(ethSignature.getSignature());
 
-        changePubKey.setEthAuthData(auth);
 
         return new SignedTransaction<>(zkSigner.signChangePubKey(changePubKey), ethSignature);
     }
@@ -203,8 +274,7 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
                 .timeRange(timeRange)
                 .build();
 
-        final EthSignature ethSignature = ethSigner.signTransfer(
-                to, accountId, nonce, amount, token, fee).get();
+        final EthSignature ethSignature = ethSigner.signTransaction(transfer, nonce, token, fee).get();
 
         return new SignedTransaction<>(zkSigner.signTransfer(transfer), ethSignature);
     }
@@ -232,8 +302,7 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
                 .timeRange(timeRange)
                 .build();
 
-        final EthSignature ethSignature = ethSigner.signWithdraw(
-                to, accountId, nonce, amount, provider.getTokens().getToken(tokenIdentifier), fee).get();
+        final EthSignature ethSignature = ethSigner.signTransaction(withdraw, nonce, token, fee).get();
 
         return new SignedTransaction<>(zkSigner.signWithdraw(withdraw), ethSignature);
     }
@@ -262,16 +331,75 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
                 .timeRange(timeRange)
                 .build();
         
-        final EthSignature ethSignature = ethSigner.signForcedExit(
-            target, nonce, provider.getTokens().getToken(tokenIdentifier), fee).get();
+        final EthSignature ethSignature = ethSigner.signTransaction(forcedExit, nonce, token, fee).get();
 
         return new SignedTransaction<>(zkSigner.signForcedExit(forcedExit), ethSignature);
+    }
+
+    @SneakyThrows
+    private SignedTransaction<MintNFT> buildSignedMintNFTTx(String to, String contentHash, String tokenIdentifier, BigInteger fee, Integer nonce) {
+        if (zkSigner == null) {
+            throw new Error("ZKSync signer is required for current pubkey calculation.");
+        }
+
+        final Tokens tokens = provider.getTokens();
+
+        final Token token = tokens.getToken(tokenIdentifier);
+
+        final MintNFT mintNft = MintNFT
+            .builder()
+            .creatorId(accountId)
+            .creatorAddress(ethSigner.getAddress())
+            .contentHash(contentHash)
+            .recipient(to)
+            .fee(fee.toString())
+            .feeToken(token.getId())
+            .nonce(nonce)
+            .build();
+
+        final EthSignature ethSignature = ethSigner.signTransaction(mintNft, nonce, token, fee).get();
+
+        return new SignedTransaction<>(zkSigner.signMintNFT(mintNft), ethSignature);
+    }
+
+    @SneakyThrows
+    private SignedTransaction<WithdrawNFT> buildSignedWithdrawNFTTx(String to, NFT token, String tokenIdentifier, BigInteger fee, Integer nonce, TimeRange timeRange) {
+        if (zkSigner == null) {
+            throw new Error("ZKSync signer is required for current pubkey calculation.");
+        }
+
+        final Tokens tokens = provider.getTokens();
+
+        final Token feeToken = tokens.getToken(tokenIdentifier);
+
+        final WithdrawNFT withdrawNFT = WithdrawNFT
+            .builder()
+            .accountId(accountId)
+            .from(ethSigner.getAddress())
+            .to(to)
+            .token(token.getId())
+            .nonce(nonce)
+            .fee(fee.toString())
+            .feeToken(feeToken.getId())
+            .timeRange(timeRange)
+            .build();
+
+        final EthSignature ethSignature = ethSigner.signTransaction(withdrawNFT, nonce, feeToken, fee).get();
+
+        return new SignedTransaction<>(zkSigner.signWithdrawNFT(withdrawNFT), ethSignature);
     }
 
     private String submitSignedTransaction(ZkSyncTransaction signedTransaction,
                                          EthSignature ethereumSignature,
                                          boolean fastProcessing) {
         return provider.submitTx(signedTransaction, ethereumSignature, fastProcessing);
+    }
+
+    private List<String> submitSignedBatch(List<ZkSyncTransaction> transactions, EthSignature ethereumSignature) {
+        return provider.submitTxBatch(
+            transactions.stream().map(tx -> Pair.of(tx, (EthSignature) null)).collect(Collectors.toList()),
+            ethereumSignature
+        );
     }
 
     private Integer getNonce() {

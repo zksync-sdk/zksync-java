@@ -1,6 +1,8 @@
 package io.zksync.domain.state;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import io.zksync.domain.token.NFT;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,4 +20,6 @@ public class State {
     private String pubKeyHash;
 
     private Map<String, String> balances;
+
+    private Map<String, NFT> nfts;
 }

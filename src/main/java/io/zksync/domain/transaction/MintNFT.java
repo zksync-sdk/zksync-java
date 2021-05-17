@@ -1,11 +1,8 @@
 package io.zksync.domain.transaction;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 import io.zksync.domain.Signature;
-import io.zksync.domain.TimeRange;
-import io.zksync.domain.token.TokenId;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,31 +14,25 @@ import java.math.BigInteger;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Transfer implements ZkSyncTransaction {
+public class MintNFT implements ZkSyncTransaction {
+    
+    private final String type = "MintNFT";
 
-    private final String type = "Transfer";
+    private Integer creatorId;
 
-    private Integer accountId;
+    private String creatorAddress;
 
-    private String from;
+    private String contentHash;
 
-    private String to;
-
-    private Integer token;
-
-    private BigInteger amount;
+    private String recipient;
 
     private String fee;
+
+    private Integer feeToken;
 
     private Integer nonce;
 
     private Signature signature;
-
-    @JsonIgnore
-    private TokenId tokenId;
-
-    @JsonUnwrapped
-    private TimeRange timeRange;
 
     @JsonIgnore
     public BigInteger getFeeInteger() {

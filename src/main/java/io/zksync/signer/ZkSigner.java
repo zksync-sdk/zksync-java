@@ -3,10 +3,14 @@ package io.zksync.signer;
 import io.zksync.domain.ChainId;
 import io.zksync.domain.Signature;
 import io.zksync.domain.auth.ChangePubKeyVariant;
+import io.zksync.domain.swap.Order;
 import io.zksync.domain.transaction.ChangePubKey;
 import io.zksync.domain.transaction.ForcedExit;
+import io.zksync.domain.transaction.MintNFT;
+import io.zksync.domain.transaction.Swap;
 import io.zksync.domain.transaction.Transfer;
 import io.zksync.domain.transaction.Withdraw;
+import io.zksync.domain.transaction.WithdrawNFT;
 import io.zksync.exception.ZkSyncException;
 import io.zksync.exception.ZkSyncIncorrectCredentialsException;
 import io.zksync.sdk.zkscrypto.lib.ZksCrypto;
@@ -202,6 +206,109 @@ public class ZkSigner {
             forcedExit.setSignature(signature);
 
             return forcedExit;
+        } catch (IOException e) {
+            throw new ZkSyncException(e);
+        }
+    }
+
+    public MintNFT signMintNFT(MintNFT mintNFT) {
+        try{
+            final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            outputStream.write(0x09);
+            outputStream.write(accountIdToBytes(mintNFT.getCreatorId()));
+            outputStream.write(addressToBytes(mintNFT.getCreatorAddress()));
+            outputStream.write(Numeric.hexStringToByteArray(mintNFT.getContentHash()));
+            outputStream.write(addressToBytes(mintNFT.getRecipient()));
+            outputStream.write(tokenIdToBytes(mintNFT.getFeeToken()));
+            outputStream.write(feeToBytes(mintNFT.getFeeInteger()));
+            outputStream.write(nonceToBytes(mintNFT.getNonce()));
+
+            byte[] message = outputStream.toByteArray();
+
+            final Signature signature = sign(message);
+
+            mintNFT.setSignature(signature);
+
+            return mintNFT;
+        } catch (IOException e) {
+            throw new ZkSyncException(e);
+        }
+    }
+
+    public WithdrawNFT signWithdrawNFT(WithdrawNFT withdrawNFT) {
+        try {
+            final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            outputStream.write(0x0a);
+            outputStream.write(accountIdToBytes(withdrawNFT.getAccountId()));
+            outputStream.write(addressToBytes(withdrawNFT.getFrom()));
+            outputStream.write(addressToBytes(withdrawNFT.getTo()));
+            outputStream.write(tokenIdToBytes(withdrawNFT.getToken()));
+            outputStream.write(tokenIdToBytes(withdrawNFT.getFeeToken()));
+            outputStream.write(feeToBytes(withdrawNFT.getFeeInteger()));
+            outputStream.write(nonceToBytes(withdrawNFT.getNonce()));
+            outputStream.write(numberToBytesBE(withdrawNFT.getTimeRange().getValidFrom(), 8));
+            outputStream.write(numberToBytesBE(withdrawNFT.getTimeRange().getValidUntil(), 8));
+
+            byte[] message = outputStream.toByteArray();
+
+            final Signature signature = sign(message);
+
+            withdrawNFT.setSignature(signature);
+
+            return withdrawNFT;
+        } catch (IOException e) {
+            throw new ZkSyncException(e);
+        }
+    }
+
+    public Swap signSwap(Swap swap) {
+        try {
+            final byte[] order1 = getOrderBytes(swap.getOrders().component1());
+            final byte[] order2 = getOrderBytes(swap.getOrders().component2());
+            final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            outputStream.write(0x0b);
+            outputStream.write(accountIdToBytes(swap.getSubmitterId()));
+            outputStream.write(addressToBytes(swap.getSubmitterAddress()));
+            outputStream.write(nonceToBytes(swap.getNonce()));
+            outputStream.write(order1);
+            outputStream.write(order2);
+            outputStream.write(tokenIdToBytes(swap.getFeeToken()));
+            outputStream.write(amountPackedToBytes(swap.getAmounts().component1()));
+            outputStream.write(amountPackedToBytes(swap.getAmounts().component2()));
+            outputStream.write(feeToBytes(swap.getFeeInteger()));
+
+            byte[] message = outputStream.toByteArray();
+
+            final Signature signature = sign(message);
+
+            swap.getOrders().component1().setSignature(sign(order1));
+            swap.getOrders().component2().setSignature(sign(order2));
+            swap.setSignature(signature);
+
+            return swap;
+        } catch (IOException e) {
+            throw new ZkSyncException(e);
+        }
+    }
+
+    byte[] getOrderBytes(Order order) {
+        try {
+            final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            outputStream.write(0x30); // ASCII 'o' in hex for (o)rder
+            outputStream.write(accountIdToBytes(order.getAccountId()));
+            outputStream.write(addressToBytes(order.getRecipientAddress()));
+            outputStream.write(nonceToBytes(order.getNonce()));
+            outputStream.write(tokenIdToBytes(order.getTokenSell()));
+            outputStream.write(tokenIdToBytes(order.getTokenBuy()));
+            outputStream.write(bigIntToBytesBE(order.getRatio().component1(), 15));
+            outputStream.write(bigIntToBytesBE(order.getRatio().component2(), 15));
+            outputStream.write(amountFullToBytes(order.getAmount()));
+            outputStream.write(numberToBytesBE(order.getTimeRange().getValidFrom(), 8));
+            outputStream.write(numberToBytesBE(order.getTimeRange().getValidUntil(), 8));
+
+            byte[] message = outputStream.toByteArray();
+
+            return message;
         } catch (IOException e) {
             throw new ZkSyncException(e);
         }
