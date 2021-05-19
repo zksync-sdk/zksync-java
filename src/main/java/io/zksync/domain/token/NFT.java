@@ -2,6 +2,7 @@ package io.zksync.domain.token;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,6 +23,8 @@ public class NFT implements TokenId {
 
     @Override
     public BigDecimal intoDecimal(BigInteger amount) {
-        return new BigDecimal(amount);
+        return new BigDecimal(amount)
+            .setScale(1)
+            .divide(BigDecimal.TEN.pow(1), RoundingMode.DOWN);
     }
 }

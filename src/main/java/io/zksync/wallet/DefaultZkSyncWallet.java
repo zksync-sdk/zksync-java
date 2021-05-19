@@ -178,8 +178,7 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
 
     @Override
     public String syncSwap(TransactionFee fee, Integer nonce) {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override

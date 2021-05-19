@@ -51,9 +51,9 @@ public class SigningUtils {
                                             BigInteger amount,
                                             TokenId token,
                                             BigInteger fee) {
-        String result = String.format("Transfer %s %s to: %s", format(token.intoDecimal(amount)), token.getSymbol(), to.toLowerCase());
+        String result = !amount.equals(BigInteger.ZERO) ? String.format("Transfer %s %s to: %s", format(token.intoDecimal(amount)), token.getSymbol(), to.toLowerCase()) : "";
         if (fee.compareTo(BigInteger.ZERO) > 0) {
-            result += String.format("\nFee: %s %s", format(token.intoDecimal(fee)), token.getSymbol());
+            result += String.format("%sFee: %s %s", result.isEmpty() ? "" : "\n", format(token.intoDecimal(fee)), token.getSymbol());
         }
         return result;
     }
