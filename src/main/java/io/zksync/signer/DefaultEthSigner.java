@@ -119,7 +119,7 @@ public class DefaultEthSigner implements EthSigner {
                         return getWithdrawMessagePart(withdraw.getTo(), withdraw.getAccountId(), withdraw.getAmount(), token, fee);
                     case "WithdrawNFT":
                         WithdrawNFT withdrawNft = (WithdrawNFT) tx;
-                        return getWithdrawNFTMessagePart(withdrawNft.getTo(), withdrawNft.getFeeToken(), token, fee);
+                        return getWithdrawNFTMessagePart(withdrawNft.getTo(), withdrawNft.getToken(), token, fee);
                     case "Swap":
                         return getSwapMessagePart(token, fee);
                     default: throw new IllegalArgumentException(String.format("Transaction type {} is not supported by batch", tx.getType()));
