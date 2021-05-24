@@ -1,7 +1,8 @@
 package io.zksync.signer;
 
-import io.zksync.domain.auth.ChangePubKeyVariant;
 import io.zksync.domain.token.Token;
+import io.zksync.domain.token.TokenId;
+import io.zksync.domain.transaction.*;
 import io.zksync.ethereum.transaction.NoOpTransactionManager;
 import io.zksync.exception.ZkSyncException;
 import org.web3j.crypto.Bip32ECKeyPair;
@@ -18,7 +19,9 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SignatureException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import static io.zksync.signer.SigningUtils.*;
 
@@ -70,22 +73,61 @@ public class DefaultEthSigner implements EthSigner {
         return this.transactionManager;
     }
 
-    public CompletableFuture<EthSignature> signChangePubKey(String pubKeyHash, Integer nonce, Integer accountId, ChangePubKeyVariant changePubKeyVariant) {
-        return signMessage(getChangePubKeyData(pubKeyHash, nonce, accountId, changePubKeyVariant));
+    public <T extends ZkSyncTransaction> CompletableFuture<EthSignature> signTransaction(T tx, Integer nonce, Token token, BigInteger fee) {
+        switch (tx.getType()) {
+            case "ChangePubKey":
+                ChangePubKey<?> changePubKey = (ChangePubKey<?>) tx;
+                return signMessage(getChangePubKeyData(changePubKey.getNewPkHash(), nonce, changePubKey.getAccountId(), changePubKey.getEthAuthData()));
+            case "ForcedExit":
+                ForcedExit forcedExit = (ForcedExit) tx;
+                return signMessage(String.join("\n", getForcedExitMessagePart(forcedExit.getTarget(), token, fee), getNonceMessagePart(nonce)).getBytes());
+            case "MintNFT":
+                MintNFT mintNFT = (MintNFT) tx;
+                return signMessage(String.join("\n", getMintNFTMessagePart(mintNFT.getContentHash(), mintNFT.getRecipient(), token, fee), getNonceMessagePart(nonce)).getBytes());
+            case "Transfer":
+                Transfer transfer = (Transfer) tx;
+                TokenId tokenId = transfer.getTokenId() != null ? transfer.getTokenId() : token;
+                return signMessage(String.join("\n", getTransferMessagePart(transfer.getTo(), transfer.getAccountId(), transfer.getAmount(), tokenId, new BigInteger(transfer.getFee())), getNonceMessagePart(nonce)).getBytes());
+            case "Withdraw":
+                Withdraw withdraw = (Withdraw) tx;
+                return signMessage(String.join("\n", getWithdrawMessagePart(withdraw.getTo(), withdraw.getAccountId(), withdraw.getAmount(), token, fee), getNonceMessagePart(nonce)).getBytes());
+            case "WithdrawNFT":
+                WithdrawNFT withdrawNft = (WithdrawNFT) tx;
+                return signMessage(String.join("\n", getWithdrawNFTMessagePart(withdrawNft.getTo(), withdrawNft.getToken(), token, fee), getNonceMessagePart(nonce)).getBytes());
+            case "Swap":
+                return signMessage(String.join("\n", getSwapMessagePart(token, fee), getNonceMessagePart(nonce)).getBytes());
+            default: throw new IllegalArgumentException(String.format("Transaction type {} is not supported yet", tx.getType()));
+        }
     }
 
-    public CompletableFuture<EthSignature> signTransfer(String to, Integer accountId, Integer nonce, BigInteger amount, Token token,
-            BigInteger fee) {
-        return signMessage(getTransferMessage(to, accountId, nonce, amount, token, fee).getBytes());
-    }
-
-    public CompletableFuture<EthSignature> signWithdraw(String to, Integer accountId, Integer nonce, BigInteger amount, Token token,
-            BigInteger fee) {
-        return signMessage(getWithdrawMessage(to, accountId, nonce, amount, token, fee).getBytes());
-    }
-
-    public CompletableFuture<EthSignature> signForcedExit(String to, Integer nonce, Token token, BigInteger fee) {
-        return signMessage(getForcedExitMessage(to, nonce, token, fee).getBytes());
+    public <T extends ZkSyncTransaction> CompletableFuture<EthSignature> signBatch(Collection<T> transactions, Integer nonce, Token token, BigInteger fee) {
+        String message = transactions.stream()
+            .map(tx -> {
+                switch (tx.getType()) {
+                    case "ForcedExit":
+                        ForcedExit forcedExit = (ForcedExit) tx;
+                        return getForcedExitMessagePart(forcedExit.getTarget(), token, fee);
+                    case "MintNFT":
+                        MintNFT mintNFT = (MintNFT) tx;
+                        return getMintNFTMessagePart(mintNFT.getRecipient(), mintNFT.getContentHash(), token, fee);
+                    case "Transfer":
+                        Transfer transfer = (Transfer) tx;
+                        TokenId tokenId = transfer.getTokenId() != null ? transfer.getTokenId() : token;
+                        return getTransferMessagePart(transfer.getTo(), transfer.getAccountId(), transfer.getAmount(), tokenId, new BigInteger(transfer.getFee()));
+                    case "Withdraw":
+                        Withdraw withdraw = (Withdraw) tx;
+                        return getWithdrawMessagePart(withdraw.getTo(), withdraw.getAccountId(), withdraw.getAmount(), token, fee);
+                    case "WithdrawNFT":
+                        WithdrawNFT withdrawNft = (WithdrawNFT) tx;
+                        return getWithdrawNFTMessagePart(withdrawNft.getTo(), withdrawNft.getToken(), token, fee);
+                    case "Swap":
+                        return getSwapMessagePart(token, fee);
+                    default: throw new IllegalArgumentException(String.format("Transaction type {} is not supported by batch", tx.getType()));
+                }
+            })
+            .collect(Collectors.joining("\n"));
+        String result = String.join("\n", message, getNonceMessagePart(nonce));
+        return signMessage(result.getBytes());
     }
 
     public CompletableFuture<EthSignature> signMessage(byte[] message) {

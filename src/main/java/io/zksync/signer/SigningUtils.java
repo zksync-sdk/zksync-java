@@ -2,6 +2,7 @@ package io.zksync.signer;
 
 import io.zksync.domain.auth.ChangePubKeyVariant;
 import io.zksync.domain.token.Token;
+import io.zksync.domain.token.TokenId;
 import io.zksync.exception.ZkSyncException;
 import lombok.SneakyThrows;
 
@@ -15,7 +16,7 @@ import java.util.Locale;
 
 public class SigningUtils {
 
-    private static final int MAX_NUMBER_OF_TOKENS = 128;
+    private static final long MAX_NUMBER_OF_TOKENS = Long.MAX_VALUE;
 
     private static final int MAX_NUMBER_OF_ACCOUNTS = Double.valueOf(Math.pow(2, 24)).intValue();
 
@@ -45,23 +46,20 @@ public class SigningUtils {
         return outputStream.toByteArray();
     }
 
-    public static String getTransferMessage(String to,
+    public static String getTransferMessagePart(String to,
                                             Integer accountId,
-                                            Integer nonce,
                                             BigInteger amount,
-                                            Token token,
+                                            TokenId token,
                                             BigInteger fee) {
-        String result = String.format("Transfer %s %s to: %s", format(token.intoDecimal(amount)), token.getSymbol(), to.toLowerCase());
+        String result = !amount.equals(BigInteger.ZERO) ? String.format("Transfer %s %s to: %s", format(token.intoDecimal(amount)), token.getSymbol(), to.toLowerCase()) : "";
         if (fee.compareTo(BigInteger.ZERO) > 0) {
-            result += String.format("\nFee: %s %s", format(token.intoDecimal(fee)), token.getSymbol());
+            result += String.format("%sFee: %s %s", result.isEmpty() ? "" : "\n", format(token.intoDecimal(fee)), token.getSymbol());
         }
-        result += String.format("\nNonce: %s", nonce);
         return result;
     }
 
-    public static String getWithdrawMessage(String to,
+    public static String getWithdrawMessagePart(String to,
                                             Integer accountId,
-                                            Integer nonce,
                                             BigInteger amount,
                                             Token token,
                                             BigInteger fee) {
@@ -70,17 +68,44 @@ public class SigningUtils {
         if (fee.compareTo(BigInteger.ZERO) > 0) {
             result += String.format("\nFee: %s %s", format(token.intoDecimal(fee)), token.getSymbol());
         }
-        result += String.format("\nNonce: %s", nonce);
         return result;
     }
 
-    public static String getForcedExitMessage(String to, Integer nonce, Token token, BigInteger fee) {
+    public static String getForcedExitMessagePart(String to, Token token, BigInteger fee) {
         String result = String.format("ForcedExit %s to: %s", token.getSymbol(), to.toLowerCase());
         if (fee.compareTo(BigInteger.ZERO) > 0) {
             result += String.format("\nFee: %s %s", format(token.intoDecimal(fee)), token.getSymbol());
         }
-        result += String.format("\nNonce: %s", nonce);
         return result;
+    }
+
+    public static String getMintNFTMessagePart(String contentHash, String recipient, Token token, BigInteger fee) {
+        String result = String.format("MintNFT %s for: %s", contentHash, recipient.toLowerCase());
+        if (fee.compareTo(BigInteger.ZERO) > 0) {
+            result += String.format("\nFee: %s %s", format(token.intoDecimal(fee)), token.getSymbol());
+        }
+        return result;
+    }
+
+    public static String getWithdrawNFTMessagePart(String to,
+                                            Integer tokenId,
+                                            Token token,
+                                            BigInteger fee) {
+
+        String result = String.format("WithdrawNFT %d to: %s", tokenId, to.toLowerCase());
+        if (fee.compareTo(BigInteger.ZERO) > 0) {
+            result += String.format("\nFee: %s %s", format(token.intoDecimal(fee)), token.getSymbol());
+        }
+        return result;
+    }
+
+    public static String getSwapMessagePart(Token token, BigInteger fee) {
+        String result = String.format("Swap fee: %s %s", format(token.intoDecimal(fee)), token.getSymbol());
+        return result;
+    }
+
+    public static String getNonceMessagePart(Integer nonce) {
+        return String.format("Nonce: %s", nonce);
     }
 
     public static String format(BigDecimal amount) {
@@ -102,13 +127,24 @@ public class SigningUtils {
         return result;
     }
 
+    public static byte[] bigIntToBytesBE(BigInteger number, int numBytes) {
+        final byte[] result = new byte[numBytes];
+
+        for (int i = numBytes - 1; i >= 0; i--) {
+            result[i] = number.and(BigInteger.valueOf(0xff)).byteValue();
+            number = number.shiftRight(8);
+        }
+
+        return result;
+    }
+
     public static byte[] accountIdToBytes(Integer accountId) {
 
         if (accountId > MAX_NUMBER_OF_ACCOUNTS) {
             throw new ZkSyncException("Account number too large");
         }
 
-        return intToByteArrayBE(accountId, 4);
+        return numberToBytesBE(accountId, 4);
     }
 
     public static byte[] addressToBytes(String address) {
@@ -132,7 +168,7 @@ public class SigningUtils {
             throw new Error("TokenId is too big");
         }
 
-        return intToByteArrayBE(tokenId, 2);
+        return numberToBytesBE(tokenId, 4);
     }
 
     public static byte[] feeToBytes(BigInteger fee) {
@@ -421,16 +457,5 @@ public class SigningUtils {
         }
 
         throw new ZkSyncException("ETH address must start with '0x' and PubKeyHash must start with 'sync:'");
-    }
-
-    private static byte[] intToByteArrayBE(int value, int size) {
-        final byte[] result = new byte[size];
-
-        for (int i = size - 1; i >= 0; i--) {
-            result[i] = Integer.valueOf(value & 0xff).byteValue();
-            value >>=8;
-        }
-
-        return result;
     }
 }

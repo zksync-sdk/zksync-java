@@ -115,6 +115,6 @@ dependencies {
     implementation 'org.scijava:native-lib-loader:2.3.4'
 
     // === Test dependencies ===
-    testCompile 'junit:junit:4.13.1'
-    testCompile "org.mockito:mockito-inline:+"
+    testImplementation 'junit:junit:4.13.1'
+    testImplementation "org.mockito:mockito-inline:+"
 }

@@ -24,6 +24,7 @@ import io.zksync.transport.response.ZksTokenPrice;
 import io.zksync.transport.response.ZksTokens;
 import io.zksync.transport.response.ZksTransactionDetails;
 import io.zksync.transport.response.ZksTransactionFeeDetails;
+import io.zksync.wallet.SignedTransaction;
 import lombok.AllArgsConstructor;
 
 import java.math.BigDecimal;
@@ -98,9 +99,7 @@ public class DefaultProvider implements Provider {
 
     @Override
     public List<String> submitTxBatch(List<Pair<ZkSyncTransaction, EthSignature>> txs, EthSignature ethereumSignature) {
-        final List<String> responseBody = transport.send("submit_txs_batch",
-                Arrays.asList(txs.stream().map(Pair::getLeft).collect(Collectors.toList()),
-                        txs.stream().map(Pair::getRight).collect(Collectors.toList()), ethereumSignature),
+        final List<String> responseBody = transport.send("submit_txs_batch", Arrays.asList(txs.stream().map(SignedTransaction::fromPair).collect(Collectors.toList()), ethereumSignature),
                 ZksSentTransactionBatch.class);
 
         return responseBody;

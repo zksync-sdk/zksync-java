@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.security.SecureRandom;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -15,6 +17,7 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.gas.DefaultGasProvider;
 import org.web3j.utils.Convert;
+import org.web3j.utils.Numeric;
 import org.web3j.utils.Convert.Unit;
 
 import io.zksync.domain.ChainId;
@@ -37,6 +40,8 @@ import io.zksync.wallet.ZkSyncWallet;
 @Ignore
 public class IntegrationTestFullFlow {
 
+    private static final SecureRandom rand = new SecureRandom();
+
     private static final String PRIVATE_KEY = "{{ethereum_private_key}}";
     private static final Token ETHEREUM_COIN = Token.createETH();
 
@@ -52,7 +57,7 @@ public class IntegrationTestFullFlow {
         ethSigner = DefaultEthSigner.fromRawPrivateKey(web3j, PRIVATE_KEY);
         zkSigner = ZkSigner.fromEthSigner(ethSigner, ChainId.Rinkeby);
 
-        wallet = ZkSyncWallet.build(ethSigner, zkSigner, Provider.defaultProvider(ChainId.Rinkeby));
+        wallet = ZkSyncWallet.build(ethSigner, zkSigner, Provider.betaProvider(ChainId.Rinkeby));
         ethereum = wallet.createEthereumProvider(
                 web3j,
                 new DefaultGasProvider());
@@ -74,7 +79,7 @@ public class IntegrationTestFullFlow {
         AccountState state = wallet.getState();
         TransactionFeeDetails details = wallet.getProvider().getTransactionFee(
             TransactionFeeRequest.builder()
-                .transactionType(TransactionType.CHANGE_PUB_KEY)
+                .transactionType(TransactionType.CHANGE_PUB_KEY_ECDSA)
                 .address(state.getAddress())
                 .tokenIdentifier(ETHEREUM_COIN.getAddress())
                 .build()
@@ -170,6 +175,68 @@ public class IntegrationTestFullFlow {
     }
 
     @Test
+    public void mintNFT() {
+        AccountState state = wallet.getState();
+        TransactionFeeDetails details = wallet.getProvider().getTransactionFee(
+            TransactionFeeRequest.builder()
+                .transactionType(TransactionType.MINT_NFT)
+                .address(state.getAddress())
+                .tokenIdentifier(ETHEREUM_COIN.getAddress())
+                .build()
+        );
+        TransactionFee fee = new TransactionFee(ETHEREUM_COIN.getAddress(), details.getTotalFeeInteger());
+        byte[] seed = rand.generateSeed(32);
+        String contentHash = Numeric.toHexString(seed);
+        String hash = wallet.syncMintNFT(state.getAddress(), contentHash, fee, state.getCommitted().getNonce());
+
+        System.out.println(hash);
+    }
+
+    @Test
+    public void withdrawNFT() {
+        AccountState state = wallet.getState();
+        TransactionFeeDetails details = wallet.getProvider().getTransactionFee(
+            TransactionFeeRequest.builder()
+                .transactionType(TransactionType.WITHDRAW_NFT)
+                .address(state.getAddress())
+                .tokenIdentifier(ETHEREUM_COIN.getAddress())
+                .build()
+        );
+        TransactionFee fee = new TransactionFee(ETHEREUM_COIN.getAddress(), details.getTotalFeeInteger());
+        String hash = wallet.syncWithdrawNFT(
+            state.getAddress(),
+            state.getCommitted().getNfts().values().stream().findAny().get(),
+            fee,
+            null,
+            new TimeRange(0, 4294967295L)
+        );
+
+        System.out.println(hash);
+    }
+
+    @Test
+    public void transferNFT() {
+        AccountState state = wallet.getState();
+        TransactionFeeDetails details = wallet.getProvider().getTransactionFee(
+            TransactionFeeBatchRequest.builder()
+                .transactionType(Pair.of(TransactionType.TRANSFER, state.getAddress()))
+                .transactionType(Pair.of(TransactionType.TRANSFER, state.getAddress()))
+                .tokenIdentifier(ETHEREUM_COIN.getAddress())
+                .build()
+        );
+        TransactionFee fee = new TransactionFee(ETHEREUM_COIN.getAddress(), details.getTotalFeeInteger());
+        List<String> hashes = wallet.syncTransferNFT(
+            state.getAddress(),
+            state.getCommitted().getNfts().values().stream().findAny().get(),
+            fee,
+            null,
+            new TimeRange(0, 4294967295L)
+        );
+
+        System.out.println(hashes);
+    }
+
+    @Test
     public void fullExit() throws InterruptedException, ExecutionException {
         AccountState state = wallet.getState();
         TransactionReceipt receipt = ethereum.fullExit(
@@ -188,7 +255,7 @@ public class IntegrationTestFullFlow {
                 .transactionType(Pair.of(TransactionType.FORCED_EXIT, "0x98122427eE193fAcbb9Fbdbf6BDE7d9042A95a0f"))
                 .transactionType(Pair.of(TransactionType.TRANSFER, "0xC8568F373484Cd51FDc1FE3675E46D8C0dc7D246"))
                 .transactionType(Pair.of(TransactionType.TRANSFER, "0x98122427eE193fAcbb9Fbdbf6BDE7d9042A95a0f"))
-                .transactionType(Pair.of(TransactionType.CHANGE_PUB_KEY, "0x98122427eE193fAcbb9Fbdbf6BDE7d9042A95a0f"))
+                .transactionType(Pair.of(TransactionType.CHANGE_PUB_KEY_ECDSA, "0x98122427eE193fAcbb9Fbdbf6BDE7d9042A95a0f"))
                 .build()
         );
 
