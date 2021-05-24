@@ -25,6 +25,6 @@ public class NFT implements TokenId {
     public BigDecimal intoDecimal(BigInteger amount) {
         return new BigDecimal(amount)
             .setScale(1)
-            .divide(BigDecimal.TEN.pow(1), RoundingMode.DOWN);
+            .divide(BigDecimal.ONE, RoundingMode.DOWN);
     }
 }
