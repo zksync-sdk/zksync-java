@@ -124,7 +124,7 @@ public class DefaultZkSyncWalletTest {
     public void testSyncWithdrawNFT() {
         Provider provider = wallet.getProvider();
         Token token = defaultToken();
-        NFT nft = new NFT(100000, "NFT-100000", "0x19aa2ed8712072e918632259780e587698ef58df", "0x0000000000000000000000000000000000000000000000000000000000000123");
+        NFT nft = new NFT(100000, "NFT-100000", 3, "0x0000000000000000000000000000000000000000000000000000000000000123", "0x19aa2ed8712072e918632259780e587698ef58df", 1, "0x7059cafb9878ac3c95daa5bc33a5728c678d28b3");
         EthSignature ethSignature = new EthSignature(SignatureType.EthereumSignature, "0x4a50341da6d2b1f0b64a4e37f753c02c43623e89cb0a291026c37fdcc723da9665453ce622f4dd6237bd98430ef0d75755694b1968f3b2d0ea8598f8bc43accf1b");
         when(provider.getTokens()).thenReturn(new Tokens(Collections.singletonMap(token.getAddress(), token)));
         when(provider.submitTx(defaultZkSyncTransaction_WithdrawNFT(), ethSignature, false)).thenReturn("success:hash");
@@ -186,6 +186,7 @@ public class DefaultZkSyncWalletTest {
             Integer.MAX_VALUE,
             "17f3708f5e2b2c39c640def0cf0010fd9dd9219650e389114ea9da47f5874184",
             Collections.singletonMap("ETH", BigInteger.TEN.toString()),
+            Collections.emptyMap(),
             Collections.emptyMap()
         );
         return state;
