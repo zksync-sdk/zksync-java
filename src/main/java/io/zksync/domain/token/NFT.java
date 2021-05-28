@@ -17,9 +17,15 @@ public class NFT implements TokenId {
 
     private String symbol;
 
-    private String creatorId;
+    private Integer creatorId;
 
     private String contentHash;
+
+    private String creatorAddress;
+
+    private Integer serialId;
+
+    private String address;
 
     @Override
     public BigDecimal intoDecimal(BigInteger amount) {

@@ -22,4 +22,6 @@ public class State {
     private Map<String, String> balances;
 
     private Map<String, NFT> nfts;
+
+    private Map<String, NFT> mintedNfts;
 }
