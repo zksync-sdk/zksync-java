@@ -81,6 +81,15 @@ public interface Provider {
     String submitTx(ZkSyncTransaction tx, boolean fastProcessing);
 
     /**
+     * Submit signed transaction to ZkSync network
+     * 
+     * @param tx - Signed transaction object
+     * @param ethereumSignature - Signatures of Ethereum accounts as 2-FA authorization
+     * @return Hash of the sent transaction in ZkSync network
+     */
+    String submitTx(ZkSyncTransaction tx, EthSignature ...ethereumSignature);
+
+    /**
      * Submit signed transaction batch to ZkSync network
      * 
      * @param txs- List of signed transaction objects

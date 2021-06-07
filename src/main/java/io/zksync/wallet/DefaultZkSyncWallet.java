@@ -5,6 +5,7 @@ import io.zksync.domain.auth.ChangePubKeyECDSA;
 import io.zksync.domain.auth.ChangePubKeyOnchain;
 import io.zksync.domain.fee.TransactionFee;
 import io.zksync.domain.state.AccountState;
+import io.zksync.domain.swap.Order;
 import io.zksync.domain.token.NFT;
 import io.zksync.domain.token.Token;
 import io.zksync.domain.token.Tokens;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.web3j.protocol.Web3j;
+import org.web3j.tuples.generated.Tuple2;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.utils.Numeric;
 
@@ -177,8 +179,33 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
     }
 
     @Override
-    public String syncSwap(TransactionFee fee, Integer nonce) {
-        throw new UnsupportedOperationException();
+    public String syncSwap(Order order1, Order order2, BigInteger amount1, BigInteger amount2, TransactionFee fee, Integer nonce) {
+        final Integer nonceToUse = nonce == null ? getNonce() : nonce;
+
+        final SignedTransaction<Swap> signedSwap = buildSignedSwapTx(order1, order2, amount1, amount2, fee.getFeeToken(), fee.getFee(), nonceToUse);
+
+        return submitSignedTransaction(signedSwap.getTransaction(), signedSwap.getEthereumSignature(), order1.getEthereumSignature(), order2.getEthereumSignature());
+    }
+
+    @Override
+    @SneakyThrows
+    public Order buildSignedOrder(String recipient, Token sell, Token buy, Tuple2<BigInteger, BigInteger> ratio, BigInteger amount, Integer nonce, TimeRange timeRange) {
+        final Integer nonceToUse = nonce == null ? getNonce() : nonce;
+
+        Order order = Order.builder()
+            .accountId(accountId)
+            .amount(amount)
+            .recipientAddress(recipient)
+            .tokenSell(sell.getId())
+            .tokenBuy(buy.getId())
+            .ratio(ratio)
+            .nonce(nonceToUse)
+            .timeRange(timeRange)
+            .build();
+        final EthSignature ethSignature = ethSigner.signOrder(order, sell, buy).get();
+        order.setEthereumSignature(ethSignature);
+
+        return zkSigner.signOrder(order);
     }
 
     @Override
@@ -388,10 +415,40 @@ public class DefaultZkSyncWallet implements ZkSyncWallet {
         return new SignedTransaction<>(zkSigner.signWithdrawNFT(withdrawNFT), ethSignature);
     }
 
+    @SneakyThrows
+    private SignedTransaction<Swap> buildSignedSwapTx(Order order1, Order order2, BigInteger amount1, BigInteger amount2, String tokenIdentifier, BigInteger fee, Integer nonce) {
+        if (zkSigner == null) {
+            throw new Error("ZKSync signer is required for current pubkey calculation.");
+        }
+
+        final Tokens tokens = provider.getTokens();
+
+        final Token feeToken = tokens.getToken(tokenIdentifier);
+
+        final Swap swap = Swap.builder()
+            .orders(new Tuple2<>(order1, order2))
+            .submitterAddress(this.ethSigner.getAddress())
+            .submitterId(this.accountId)
+            .amounts(new Tuple2<>(amount1, amount2))
+            .nonce(nonce)
+            .fee(fee.toString())
+            .feeToken(feeToken.getId())
+            .build();
+
+        final EthSignature ethSignature = ethSigner.signTransaction(swap, nonce, feeToken, fee).get();
+
+        return new SignedTransaction<>(zkSigner.signSwap(swap), ethSignature);
+    }
+
     private String submitSignedTransaction(ZkSyncTransaction signedTransaction,
                                          EthSignature ethereumSignature,
                                          boolean fastProcessing) {
         return provider.submitTx(signedTransaction, ethereumSignature, fastProcessing);
+    }
+
+    private String submitSignedTransaction(ZkSyncTransaction signedTransaction,
+                                         EthSignature ...ethereumSignature) {
+        return provider.submitTx(signedTransaction, ethereumSignature);
     }
 
     private List<String> submitSignedBatch(List<ZkSyncTransaction> transactions, EthSignature ethereumSignature) {
