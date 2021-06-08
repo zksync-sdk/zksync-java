@@ -283,9 +283,9 @@ public class ZkSigner {
             outputStream.write(nonceToBytes(swap.getNonce()));
             outputStream.write(ordersHash);
             outputStream.write(tokenIdToBytes(swap.getFeeToken()));
+            outputStream.write(feeToBytes(swap.getFeeInteger()));
             outputStream.write(amountPackedToBytes(swap.getAmounts().component1()));
             outputStream.write(amountPackedToBytes(swap.getAmounts().component2()));
-            outputStream.write(feeToBytes(swap.getFeeInteger()));
 
             byte[] message = outputStream.toByteArray();
 
