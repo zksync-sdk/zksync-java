@@ -2,6 +2,8 @@ package io.zksync.wallet;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.web3j.abi.datatypes.Address;
+import org.web3j.tuples.generated.Tuple2;
 
 import io.zksync.domain.ChainId;
 import io.zksync.domain.Signature;
@@ -12,6 +14,7 @@ import io.zksync.domain.state.AccountState;
 import io.zksync.domain.state.DepositingBalance;
 import io.zksync.domain.state.DepositingState;
 import io.zksync.domain.state.State;
+import io.zksync.domain.swap.Order;
 import io.zksync.domain.token.NFT;
 import io.zksync.domain.token.Token;
 import io.zksync.domain.token.Tokens;
@@ -21,6 +24,7 @@ import io.zksync.domain.transaction.MintNFT;
 import io.zksync.domain.transaction.Transfer;
 import io.zksync.domain.transaction.Withdraw;
 import io.zksync.domain.transaction.WithdrawNFT;
+import io.zksync.domain.transaction.Swap;
 import io.zksync.provider.Provider;
 import io.zksync.signer.EthSignature;
 import io.zksync.signer.EthSigner;
@@ -157,10 +161,47 @@ public class DefaultZkSyncWalletTest {
     }
 
     @Test
+    public void testSyncSwap() {
+        Provider provider = mock(Provider.class);
+        when(provider.getState(anyString())).thenReturn(defaultAccountState(5));
+        ZkSyncWallet wallet = ZkSyncWallet.build(ethSigner, zkSigner, provider);
+
+        Token token = new Token(3, Address.DEFAULT.getValue(), "USDT", 1);
+        EthSignature ethSignature = new EthSignature(SignatureType.EthereumSignature, "0x3a459b40838e9445adc59e0cba4bf769b68deda8dadfedfe415f9e8be1c55443090f66cfbd13d96019b9faafb996a5a69d1bc0d1061f08ebf7cb8a1687e09a0f1c");
+        when(provider.getTokens()).thenReturn(new Tokens(Collections.singletonMap(token.getAddress(), token)));
+        when(provider.submitTx(defaultZkSyncTransaction_Swap(), new EthSignature[]{ethSignature, null, null})).thenReturn("success:hash");
+        String response = wallet.syncSwap(
+            defaultOrderA(),
+            defaultOrderB(),
+            BigInteger.valueOf(1000000),
+            BigInteger.valueOf(2500000),
+            defaultTransactionFee(123),
+            1
+        );
+        assertNotNull(response);
+        assertEquals(response, "success:hash");
+    }
+
+    @Test
     public void testGetState() {
         Provider provider = spy(wallet.getProvider());
         when(provider.getState(anyString())).thenReturn(defaultAccountState(44));
         assertEquals(wallet.getState(), defaultAccountState(44));
+    }
+
+    @Test
+    public void testCreateOrder() {
+        Provider provider = mock(Provider.class);
+        when(provider.getState(anyString())).thenReturn(defaultAccountState(6));
+        ZkSyncWallet wallet = ZkSyncWallet.build(ethSigner, zkSigner, provider);
+
+        Token tokenSell = new Token(0, Address.DEFAULT.getValue(), "ETH", 3);
+        Token tokenBuy = new Token(2, Address.DEFAULT.getValue(), "DAI", 3);
+
+        Order order = defaultOrder();
+        Order result = wallet.buildSignedOrder("0x823b6a996cea19e0c41e250b20e2e804ea72ccdf", tokenSell, tokenBuy, new Tuple2<>(BigInteger.valueOf(1), BigInteger.valueOf(2)), BigInteger.valueOf(1000000), 18, new TimeRange(0, 4294967295L));
+
+        assertEquals(result, order);
     }
 
     private AccountState defaultAccountState(Integer accountId) {
@@ -314,6 +355,84 @@ public class DefaultZkSyncWalletTest {
             new TimeRange(0, 4294967295L)
         );
         return tx;
+    }
+
+    private Swap defaultZkSyncTransaction_Swap() {
+        Swap tx = new Swap(
+            5,
+            "0xede35562d3555e61120a151b3c8e8e91d83a378a",
+            1,
+            new Tuple2<>(defaultOrderA(), defaultOrderB()),
+            new Tuple2<>(BigInteger.valueOf(1000000), BigInteger.valueOf(2500000)),
+            "123",
+            3,
+            Signature.builder()
+                .pubKey("40771354dc314593e071eaf4d0f42ccb1fad6c7006c57464feeb7ab5872b7490")
+                .signature("c13aabacf96448efb47763554753bfe2acc303a8297c8af59e718d685d422a901a43c42448f95cca632821df1ccb754950196e8444c0acef253c42c1578b5401")
+                .build()
+        );
+        return tx;
+    }
+
+    private Order defaultOrder() {
+        Order order = Order.builder()
+            .accountId(6)
+            .amount(BigInteger.valueOf(1000000))
+            .recipientAddress("0x823b6a996cea19e0c41e250b20e2e804ea72ccdf")
+            .tokenSell(0)
+            .tokenBuy(2)
+            .ratio(new Tuple2<>(BigInteger.valueOf(1), BigInteger.valueOf(2)))
+            .nonce(18)
+            .timeRange(new TimeRange(0, 4294967295L))
+            .ethereumSignature(
+                EthSignature.builder()
+                    .signature("0x841a4ed62572883b2272a56164eb33f7b0649029ba588a7230928cff698b49383045b47d35dcdee1beb33dd4ca6b944b945314a206f3f2838ddbe389a34fc8cb1c")
+                    .type(SignatureType.EthereumSignature)
+                    .build()
+            )
+            .signature(
+                Signature.builder()
+                    .pubKey("40771354dc314593e071eaf4d0f42ccb1fad6c7006c57464feeb7ab5872b7490")
+                    .signature("b76c83011ea9e14cf679d35b9a7084832a78bf3f975c5b5c3315f80993c227afb7a1cd7e7b8fc225a48d8c9be78335736115890df5bbacfc52ecf47b4e089500")
+                    .build()
+            )
+            .build();
+
+        return order;
+    }
+
+    private Order defaultOrderA() {
+        Order order = Order.builder()
+            .accountId(6)
+            .amount(BigInteger.valueOf(1000000))
+            .recipientAddress("0x823b6a996cea19e0c41e250b20e2e804ea72ccdf")
+            .tokenSell(1)
+            .tokenBuy(2)
+            .ratio(new Tuple2<>(BigInteger.valueOf(1), BigInteger.valueOf(2)))
+            .nonce(18)
+            .timeRange(new TimeRange(0, 4294967295L))
+            .ethereumSignature(null)
+            .signature(null)
+            .build();
+
+        return order;
+    }
+
+    private Order defaultOrderB() {
+        Order order = Order.builder()
+            .accountId(44)
+            .amount(BigInteger.valueOf(2500000))
+            .recipientAddress("0x63adbb48d1bc2cf54562910ce54b7ca06b87f319")
+            .tokenSell(2)
+            .tokenBuy(1)
+            .ratio(new Tuple2<>(BigInteger.valueOf(3), BigInteger.valueOf(1)))
+            .nonce(101)
+            .timeRange(new TimeRange(0, 4294967295L))
+            .ethereumSignature(null)
+            .signature(null)
+            .build();
+
+        return order;
     }
     
 }
