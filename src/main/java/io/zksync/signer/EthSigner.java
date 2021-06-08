@@ -7,6 +7,7 @@ import java.util.concurrent.CompletableFuture;
 
 import org.web3j.tx.TransactionManager;
 
+import io.zksync.domain.swap.Order;
 import io.zksync.domain.token.Token;
 import io.zksync.domain.transaction.ZkSyncTransaction;
 
@@ -37,6 +38,16 @@ public interface EthSigner {
      * @return Signature object
      */
     <T extends ZkSyncTransaction> CompletableFuture<EthSignature> signTransaction(T transaction, Integer nonce, Token token, BigInteger fee);
+
+    /**
+     * Sign `Order` message
+     * 
+     * @param order - Prepared order
+     * @param tokenSell - Token object supported by ZkSync
+     * @param tokenBuy - Token object supported by ZkSync
+     * @return Signature object
+     */
+    CompletableFuture<EthSignature> signOrder(Order order, Token tokenSell, Token tokenBuy);
 
     /**
      * Sign batch of `ZkSync` type operation messages

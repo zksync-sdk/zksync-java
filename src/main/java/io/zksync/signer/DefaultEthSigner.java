@@ -1,5 +1,6 @@
 package io.zksync.signer;
 
+import io.zksync.domain.swap.Order;
 import io.zksync.domain.token.Token;
 import io.zksync.domain.token.TokenId;
 import io.zksync.domain.transaction.*;
@@ -98,6 +99,13 @@ public class DefaultEthSigner implements EthSigner {
                 return signMessage(String.join("\n", getSwapMessagePart(token, fee), getNonceMessagePart(nonce)).getBytes());
             default: throw new IllegalArgumentException(String.format("Transaction type {} is not supported yet", tx.getType()));
         }
+    }
+
+    @Override
+    public CompletableFuture<EthSignature> signOrder(Order order, Token tokenSell, Token tokenBuy) {
+        String message = getOrderMessagePart(order.getRecipientAddress(), order.getAmount(), tokenSell, tokenBuy, order.getRatio(), order.getNonce());
+
+        return signMessage(message.getBytes());
     }
 
     public <T extends ZkSyncTransaction> CompletableFuture<EthSignature> signBatch(Collection<T> transactions, Integer nonce, Token token, BigInteger fee) {

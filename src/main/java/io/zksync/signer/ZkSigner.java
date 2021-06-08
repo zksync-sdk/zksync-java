@@ -21,6 +21,7 @@ import io.zksync.sdk.zkscrypto.lib.exception.ZksSeedTooShortException;
 import io.zksync.signer.EthSignature.SignatureType;
 import lombok.SneakyThrows;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.web3j.utils.Numeric;
 
 import java.io.ByteArrayOutputStream;
@@ -33,6 +34,8 @@ public class ZkSigner {
     private static final ZksCrypto crypto = ZksCrypto.load();
     
     public static final String MESSAGE = "Access zkSync account.\n\nOnly sign this message for a trusted client!";
+
+    public static final Integer TRANSACTION_VERSION = 0x01;
 
     private final ZksPrivateKey privateKey;
 
@@ -113,7 +116,8 @@ public class ZkSigner {
     public <T extends ChangePubKeyVariant> ChangePubKey<T> signChangePubKey(ChangePubKey<T> changePubKey) {
         try {
             final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            outputStream.write(0x07);
+            outputStream.write(0xff - 0x07);
+            outputStream.write(TRANSACTION_VERSION);
             outputStream.write(accountIdToBytes(changePubKey.getAccountId()));
             outputStream.write(addressToBytes(changePubKey.getAccount()));
             outputStream.write(addressToBytes(changePubKey.getNewPkHash()));
@@ -138,7 +142,8 @@ public class ZkSigner {
     public Transfer signTransfer(Transfer transfer) {
         try {
             final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            outputStream.write(0x05);
+            outputStream.write(0xff - 0x05);
+            outputStream.write(TRANSACTION_VERSION);
             outputStream.write(accountIdToBytes(transfer.getAccountId()));
             outputStream.write(addressToBytes(transfer.getFrom()));
             outputStream.write(addressToBytes(transfer.getTo()));
@@ -164,7 +169,8 @@ public class ZkSigner {
     public Withdraw signWithdraw(Withdraw withdraw) {
         try {
             final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            outputStream.write(0x03);
+            outputStream.write(0xff - 0x03);
+            outputStream.write(TRANSACTION_VERSION);
             outputStream.write(accountIdToBytes(withdraw.getAccountId()));
             outputStream.write(addressToBytes(withdraw.getFrom()));
             outputStream.write(addressToBytes(withdraw.getTo()));
@@ -190,7 +196,8 @@ public class ZkSigner {
     public ForcedExit signForcedExit(ForcedExit forcedExit) {
         try {
             final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            outputStream.write(0x08);
+            outputStream.write(0xff - 0x08);
+            outputStream.write(TRANSACTION_VERSION);
             outputStream.write(accountIdToBytes(forcedExit.getInitiatorAccountId()));
             outputStream.write(addressToBytes(forcedExit.getTarget()));
             outputStream.write(tokenIdToBytes(forcedExit.getToken()));
@@ -214,7 +221,8 @@ public class ZkSigner {
     public MintNFT signMintNFT(MintNFT mintNFT) {
         try{
             final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            outputStream.write(0x09);
+            outputStream.write(0xff - 0x09);
+            outputStream.write(TRANSACTION_VERSION);
             outputStream.write(accountIdToBytes(mintNFT.getCreatorId()));
             outputStream.write(addressToBytes(mintNFT.getCreatorAddress()));
             outputStream.write(Numeric.hexStringToByteArray(mintNFT.getContentHash()));
@@ -238,7 +246,8 @@ public class ZkSigner {
     public WithdrawNFT signWithdrawNFT(WithdrawNFT withdrawNFT) {
         try {
             final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            outputStream.write(0x0a);
+            outputStream.write(0xff - 0x0a);
+            outputStream.write(TRANSACTION_VERSION);
             outputStream.write(accountIdToBytes(withdrawNFT.getAccountId()));
             outputStream.write(addressToBytes(withdrawNFT.getFrom()));
             outputStream.write(addressToBytes(withdrawNFT.getTo()));
@@ -265,24 +274,23 @@ public class ZkSigner {
         try {
             final byte[] order1 = getOrderBytes(swap.getOrders().component1());
             final byte[] order2 = getOrderBytes(swap.getOrders().component2());
+            final byte[] ordersHash = crypto.rescueHashOrders(ArrayUtils.addAll(order1, order2)).getData();
             final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            outputStream.write(0x0b);
+            outputStream.write(0xff - 0x0b);
+            outputStream.write(TRANSACTION_VERSION);
             outputStream.write(accountIdToBytes(swap.getSubmitterId()));
             outputStream.write(addressToBytes(swap.getSubmitterAddress()));
             outputStream.write(nonceToBytes(swap.getNonce()));
-            outputStream.write(order1);
-            outputStream.write(order2);
+            outputStream.write(ordersHash);
             outputStream.write(tokenIdToBytes(swap.getFeeToken()));
+            outputStream.write(feeToBytes(swap.getFeeInteger()));
             outputStream.write(amountPackedToBytes(swap.getAmounts().component1()));
             outputStream.write(amountPackedToBytes(swap.getAmounts().component2()));
-            outputStream.write(feeToBytes(swap.getFeeInteger()));
 
             byte[] message = outputStream.toByteArray();
 
             final Signature signature = sign(message);
 
-            swap.getOrders().component1().setSignature(sign(order1));
-            swap.getOrders().component2().setSignature(sign(order2));
             swap.setSignature(signature);
 
             return swap;
@@ -291,10 +299,21 @@ public class ZkSigner {
         }
     }
 
+    public Order signOrder(Order order) {
+        byte[] message = getOrderBytes(order);
+
+        final Signature signature = sign(message);
+
+        order.setSignature(signature);
+
+        return order;
+    }
+
     byte[] getOrderBytes(Order order) {
         try {
             final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            outputStream.write(0x30); // ASCII 'o' in hex for (o)rder
+            outputStream.write(0x6f); // ASCII 'o' in hex for (o)rder
+            outputStream.write(TRANSACTION_VERSION);
             outputStream.write(accountIdToBytes(order.getAccountId()));
             outputStream.write(addressToBytes(order.getRecipientAddress()));
             outputStream.write(nonceToBytes(order.getNonce()));
@@ -302,7 +321,7 @@ public class ZkSigner {
             outputStream.write(tokenIdToBytes(order.getTokenBuy()));
             outputStream.write(bigIntToBytesBE(order.getRatio().component1(), 15));
             outputStream.write(bigIntToBytesBE(order.getRatio().component2(), 15));
-            outputStream.write(amountFullToBytes(order.getAmount()));
+            outputStream.write(amountPackedToBytes(order.getAmount()));
             outputStream.write(numberToBytesBE(order.getTimeRange().getValidFrom(), 8));
             outputStream.write(numberToBytesBE(order.getTimeRange().getValidUntil(), 8));
 

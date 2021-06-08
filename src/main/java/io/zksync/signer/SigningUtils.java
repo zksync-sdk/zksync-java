@@ -6,6 +6,7 @@ import io.zksync.domain.token.TokenId;
 import io.zksync.exception.ZkSyncException;
 import lombok.SneakyThrows;
 
+import org.web3j.tuples.generated.Tuple2;
 import org.web3j.utils.Numeric;
 
 import java.io.ByteArrayOutputStream;
@@ -96,6 +97,19 @@ public class SigningUtils {
         if (fee.compareTo(BigInteger.ZERO) > 0) {
             result += String.format("\nFee: %s %s", format(token.intoDecimal(fee)), token.getSymbol());
         }
+        return result;
+    }
+
+    public static String getOrderMessagePart(String recipient, BigInteger amount, Token tokenSell, Token tokenBuy, Tuple2<BigInteger, BigInteger> ratio, Integer nonce) {
+        String result;
+        if (amount.compareTo(BigInteger.ZERO) == 0) {
+            result = String.format("Limit order for %s -> %s", tokenSell.getSymbol(), tokenBuy.getSymbol());
+        } else {
+            result = String.format("Order for %s %s -> %s", format(tokenSell.intoDecimal(amount)), tokenSell.getSymbol(), tokenBuy.getSymbol());
+        }
+        result = result + String.format("\nRatio: %s:%s\nAddress: %s\n", ratio.component1().toString(), ratio.component2().toString(), recipient.toLowerCase());
+        result = result + getNonceMessagePart(nonce);
+
         return result;
     }
 

@@ -98,6 +98,14 @@ public class DefaultProvider implements Provider {
     }
 
     @Override
+    public String submitTx(ZkSyncTransaction tx, EthSignature... ethereumSignature) {
+        final String responseBody = transport.send("tx_submit", Arrays.asList(tx, ethereumSignature),
+                ZksSentTransaction.class);
+
+        return responseBody;
+    }
+
+    @Override
     public List<String> submitTxBatch(List<Pair<ZkSyncTransaction, EthSignature>> txs, EthSignature ethereumSignature) {
         final List<String> responseBody = transport.send("submit_txs_batch", Arrays.asList(txs.stream().map(SignedTransaction::fromPair).collect(Collectors.toList()), ethereumSignature),
                 ZksSentTransactionBatch.class);
