@@ -77,7 +77,7 @@ public class ZkSigner {
     }
 
     @SneakyThrows
-    public static ZkSigner fromEthSigner(EthSigner ethSigner, ChainId chainId) {
+    public static ZkSigner fromEthSigner(DefaultEthSigner ethSigner, ChainId chainId) {
         String message = MESSAGE;
         if (chainId != ChainId.Mainnet) {
             message = String.format("%s\nChain ID: %d.", MESSAGE, chainId.getId());
@@ -259,6 +259,7 @@ public class ZkSigner {
             outputStream.write(numberToBytesBE(withdrawNFT.getTimeRange().getValidUntil(), 8));
 
             byte[] message = outputStream.toByteArray();
+            System.out.println(Numeric.toHexString(message));
 
             final Signature signature = sign(message);
 

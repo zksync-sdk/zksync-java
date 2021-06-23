@@ -1,5 +1,6 @@
 package io.zksync.signer;
 
+import io.zksync.domain.auth.ChangePubKeyECDSA;
 import io.zksync.domain.swap.Order;
 import io.zksync.domain.token.Token;
 import io.zksync.domain.token.TokenId;
@@ -26,7 +27,7 @@ import java.util.stream.Collectors;
 
 import static io.zksync.signer.SigningUtils.*;
 
-public class DefaultEthSigner implements EthSigner {
+public class DefaultEthSigner implements EthSigner<ChangePubKeyECDSA> {
 
     private final Credentials credentials;
     private final TransactionManager transactionManager;
@@ -36,32 +37,32 @@ public class DefaultEthSigner implements EthSigner {
         this.transactionManager = transactionManager;
     }
 
-    public static EthSigner fromMnemonic(String mnemonic) {
+    public static DefaultEthSigner fromMnemonic(String mnemonic) {
         Credentials credentials = generateCredentialsFromMnemonic(mnemonic, 0);
         return new DefaultEthSigner(new NoOpTransactionManager(credentials), credentials);
     }
 
-    public static EthSigner fromMnemonic(String mnemonic, int accountIndex) {
+    public static DefaultEthSigner fromMnemonic(String mnemonic, int accountIndex) {
         Credentials credentials = generateCredentialsFromMnemonic(mnemonic, accountIndex);
         return new DefaultEthSigner(new NoOpTransactionManager(credentials), credentials);
     }
 
-    public static EthSigner fromRawPrivateKey(String rawPrivateKey) {
+    public static DefaultEthSigner fromRawPrivateKey(String rawPrivateKey) {
         Credentials credentials = Credentials.create(rawPrivateKey);
         return new DefaultEthSigner(new NoOpTransactionManager(credentials), credentials);
     }
 
-    public static EthSigner fromMnemonic(Web3j web3j, String mnemonic) {
+    public static DefaultEthSigner fromMnemonic(Web3j web3j, String mnemonic) {
         Credentials credentials = generateCredentialsFromMnemonic(mnemonic, 0);
         return new DefaultEthSigner(new RawTransactionManager(web3j, credentials), credentials);
     }
 
-    public static EthSigner fromMnemonic(Web3j web3j, String mnemonic, int accountIndex) {
+    public static DefaultEthSigner fromMnemonic(Web3j web3j, String mnemonic, int accountIndex) {
         Credentials credentials = generateCredentialsFromMnemonic(mnemonic, accountIndex);
         return new DefaultEthSigner(new RawTransactionManager(web3j, credentials), credentials);
     }
 
-    public static EthSigner fromRawPrivateKey(Web3j web3j, String rawPrivateKey) {
+    public static DefaultEthSigner fromRawPrivateKey(Web3j web3j, String rawPrivateKey) {
         Credentials credentials = Credentials.create(rawPrivateKey);
         return new DefaultEthSigner(new RawTransactionManager(web3j, credentials), credentials);
     }
@@ -72,6 +73,17 @@ public class DefaultEthSigner implements EthSigner {
 
     public TransactionManager getTransactionManager() {
         return this.transactionManager;
+    }
+
+    @Override
+    public CompletableFuture<ChangePubKey<ChangePubKeyECDSA>> signAuth(ChangePubKey<ChangePubKeyECDSA> changePubKey) {
+        ChangePubKeyECDSA auth = new ChangePubKeyECDSA(null, Numeric.toHexString(Numeric.toBytesPadded(BigInteger.ZERO, 32)));
+        return signMessage(getChangePubKeyData(changePubKey.getNewPkHash(), changePubKey.getNonce(), changePubKey.getAccountId(), auth))
+            .thenApply(sig -> {
+                auth.setEthSignature(sig.getSignature());
+                changePubKey.setEthAuthData(auth);
+                return changePubKey;
+            });
     }
 
     public <T extends ZkSyncTransaction> CompletableFuture<EthSignature> signTransaction(T tx, Integer nonce, Token token, BigInteger fee) {

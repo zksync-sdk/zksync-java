@@ -15,6 +15,7 @@ import org.junit.Test;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
+import org.web3j.tuples.generated.Tuple2;
 import org.web3j.tx.gas.DefaultGasProvider;
 import org.web3j.utils.Convert;
 import org.web3j.utils.Numeric;
@@ -28,11 +29,11 @@ import io.zksync.domain.fee.TransactionFeeDetails;
 import io.zksync.domain.fee.TransactionFeeRequest;
 import io.zksync.domain.fee.TransactionType;
 import io.zksync.domain.state.AccountState;
+import io.zksync.domain.swap.Order;
 import io.zksync.domain.token.Token;
 import io.zksync.ethereum.EthereumProvider;
 import io.zksync.provider.Provider;
 import io.zksync.signer.DefaultEthSigner;
-import io.zksync.signer.EthSigner;
 import io.zksync.signer.ZkSigner;
 import io.zksync.wallet.ZkSyncWallet;
 
@@ -48,7 +49,7 @@ public class IntegrationTestFullFlow {
     private ZkSyncWallet wallet;
     private EthereumProvider ethereum;
 
-    private EthSigner ethSigner;
+    private DefaultEthSigner ethSigner;
     private ZkSigner zkSigner;
 
     @Before
@@ -234,6 +235,25 @@ public class IntegrationTestFullFlow {
         );
 
         System.out.println(hashes);
+    }
+
+    @Test
+    public void swapTokens() {
+        AccountState state = wallet.getState();
+        TransactionFeeDetails details = wallet.getProvider().getTransactionFee(
+            TransactionFeeBatchRequest.builder()
+                .transactionType(Pair.of(TransactionType.SWAP, state.getAddress()))
+                .tokenIdentifier(ETHEREUM_COIN.getAddress())
+                .build()
+        );
+        TransactionFee fee = new TransactionFee(ETHEREUM_COIN.getAddress(), details.getTotalFeeInteger());
+        BigInteger amount1 = Convert.toWei(BigDecimal.valueOf(1000), Unit.GWEI).toBigInteger();
+        BigInteger amount2 = Convert.toWei(BigDecimal.valueOf(1000), Unit.GWEI).toBigInteger();
+        Order order1 = wallet.buildSignedOrder(state.getAddress(), ETHEREUM_COIN, ETHEREUM_COIN, new Tuple2<>(BigInteger.ONE, BigInteger.ONE), amount1, state.getCommitted().getNonce(), new TimeRange(0, 4294967295L));
+        Order order2 = wallet.buildSignedOrder(state.getAddress(), ETHEREUM_COIN, ETHEREUM_COIN, new Tuple2<>(BigInteger.ONE, BigInteger.ONE), amount2, state.getCommitted().getNonce(), new TimeRange(0, 4294967295L));
+        String hash = wallet.syncSwap(order1, order2, amount1, amount2, fee, state.getCommitted().getNonce());
+
+        System.out.println(hash);
     }
 
     @Test

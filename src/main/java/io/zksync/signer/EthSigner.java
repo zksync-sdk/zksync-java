@@ -7,11 +7,13 @@ import java.util.concurrent.CompletableFuture;
 
 import org.web3j.tx.TransactionManager;
 
+import io.zksync.domain.auth.ChangePubKeyVariant;
 import io.zksync.domain.swap.Order;
 import io.zksync.domain.token.Token;
+import io.zksync.domain.transaction.ChangePubKey;
 import io.zksync.domain.transaction.ZkSyncTransaction;
 
-public interface EthSigner {
+public interface EthSigner<A extends ChangePubKeyVariant> {
     
     /**
      * Get wallet address
@@ -26,6 +28,8 @@ public interface EthSigner {
      * @return TransactionManager object that implements signing and sending transactions
      */
     TransactionManager getTransactionManager();
+
+    CompletableFuture<ChangePubKey<A>> signAuth(ChangePubKey<A> changePubKey);
 
     /**
      * Sign `ZkSync` type operation message
