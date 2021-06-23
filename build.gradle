@@ -89,8 +89,8 @@ signing {
 dependencies {
 
     // === Code Generation ===
-    compileOnly 'org.projectlombok:lombok:1.18.16'
-    annotationProcessor 'org.projectlombok:lombok:1.18.16'
+    compileOnly 'org.projectlombok:lombok:1.18.20'
+    annotationProcessor 'org.projectlombok:lombok:1.18.20'
 
     // === DTO ===
     implementation('org.modelmapper:modelmapper:1.1.0')
