@@ -33,7 +33,7 @@ public class DefaultEthereumProvider implements EthereumProvider {
             BigInteger.ZERO);
 
     private final Web3j web3j;
-    private final EthSigner ethSigner;
+    private final EthSigner<?> ethSigner;
     private final ZkSync contract;
 
     @Override
