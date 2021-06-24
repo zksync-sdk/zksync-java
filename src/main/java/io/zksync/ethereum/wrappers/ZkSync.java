@@ -47,6 +47,8 @@ public class ZkSync extends Contract {
 
     public static final String FUNC_FULLEXIT = "requestFullExit";
 
+    public static final String FUNC_FULLEXIT_NFT = "requestFullExitNFT";
+
     public static final String FUNC_GETNOTICEPERIOD = "getNoticePeriod";
 
     public static final String FUNC_INITIALIZE = "initialize";
@@ -180,6 +182,15 @@ public class ZkSync extends Contract {
                 FUNC_FULLEXIT, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint32(_accountId), 
                 new org.web3j.abi.datatypes.Address(160, _token)), 
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
+    }
+
+    public RemoteFunctionCall<TransactionReceipt> requestFullExitNFT(BigInteger _accountId, BigInteger _token) {
+        final Function function = new Function(
+                FUNC_FULLEXIT_NFT,
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint32(_accountId),
+                new org.web3j.abi.datatypes.generated.Uint32(_token)),
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }

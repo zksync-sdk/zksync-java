@@ -18,6 +18,7 @@ import org.web3j.tx.gas.StaticGasProvider;
 import org.web3j.utils.Numeric;
 import org.web3j.utils.Convert.Unit;
 
+import io.zksync.domain.token.NFT;
 import io.zksync.domain.token.Token;
 import io.zksync.ethereum.wrappers.ERC20;
 import io.zksync.ethereum.wrappers.ZkSync;
@@ -76,6 +77,11 @@ public class DefaultEthereumProvider implements EthereumProvider {
     @Override
     public CompletableFuture<TransactionReceipt> fullExit(Token token, Integer accountId) {
         return contract.requestFullExit(BigInteger.valueOf(accountId), token.getAddress()).sendAsync();
+    }
+
+    @Override
+    public CompletableFuture<TransactionReceipt> fullExitNFT(NFT token, Integer accountId) {
+        return contract.requestFullExitNFT(BigInteger.valueOf(accountId), BigInteger.valueOf(token.getId())).sendAsync();
     }
 
     @Override
