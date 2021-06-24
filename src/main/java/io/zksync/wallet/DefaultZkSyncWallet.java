@@ -34,9 +34,9 @@ import org.web3j.protocol.Web3j;
 import org.web3j.tuples.generated.Tuple2;
 import org.web3j.tx.gas.ContractGasProvider;
 
-public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, T extends EthSigner<A>> implements ZkSyncWallet {
+public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSigner<A>> implements ZkSyncWallet {
 
-    private T ethSigner;
+    private S ethSigner;
     private ZkSigner zkSigner;
 
     @Getter
@@ -46,7 +46,7 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, T extends EthSig
 
     private String pubKeyHash;
 
-    DefaultZkSyncWallet(T ethSigner, ZkSigner zkSigner, Provider provider) {
+    DefaultZkSyncWallet(S ethSigner, ZkSigner zkSigner, Provider provider) {
         this.ethSigner = ethSigner;
         this.zkSigner = zkSigner;
 
@@ -56,11 +56,11 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, T extends EthSig
         this.pubKeyHash = null;
     }
 
-    public static <A extends ChangePubKeyVariant, T extends EthSigner<A>> DefaultZkSyncWallet<A, T> build(T ethSigner, ZkSigner zkSigner, ZkSyncTransport transport) {
+    public static <A extends ChangePubKeyVariant, S extends EthSigner<A>> DefaultZkSyncWallet<A, S> build(S ethSigner, ZkSigner zkSigner, ZkSyncTransport transport) {
         return new DefaultZkSyncWallet<>(ethSigner, zkSigner, new DefaultProvider(transport));
     }
 
-    public static <A extends ChangePubKeyVariant, T extends EthSigner<A>> DefaultZkSyncWallet<A, T> build(T ethSigner, ZkSigner zkSigner, Provider provider) {
+    public static <A extends ChangePubKeyVariant, S extends EthSigner<A>> DefaultZkSyncWallet<A, S> build(S ethSigner, ZkSigner zkSigner, Provider provider) {
         return new DefaultZkSyncWallet<>(ethSigner, zkSigner, provider);
     }
 
@@ -239,6 +239,19 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, T extends EthSig
         }
 
         return this.pubKeyHash;
+    }
+
+    @Override
+    public EthereumProvider createEthereumProvider(Web3j web3j, ContractGasProvider contractGasProvider) {
+        String contractAddress = this.provider.contractAddress().getMainContract();
+        ZkSync contract = ZkSync.load(contractAddress, web3j, this.ethSigner.getTransactionManager(), contractGasProvider);
+        DefaultEthereumProvider ethereum = new DefaultEthereumProvider(web3j, this.ethSigner, contract);
+        return ethereum;
+    }
+
+    @Override
+    public String getAddress() {
+        return this.ethSigner.getAddress();
     }
 
     @SneakyThrows
@@ -487,10 +500,7 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, T extends EthSig
     }
 
     @Override
-    public EthereumProvider createEthereumProvider(Web3j web3j, ContractGasProvider contractGasProvider) {
-        String contractAddress = this.provider.contractAddress().getMainContract();
-        ZkSync contract = ZkSync.load(contractAddress, web3j, this.ethSigner.getTransactionManager(), contractGasProvider);
-        DefaultEthereumProvider ethereum = new DefaultEthereumProvider(web3j, this.ethSigner, contract);
-        return ethereum;
+    public <T extends ZkSyncTransaction> String submitTransaction(SignedTransaction<T> transaction) {
+        return submitSignedTransaction(transaction.getTransaction(), transaction.getEthereumSignature());
     }
 }
