@@ -8,7 +8,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.web3j.protocol.Web3j;
 import org.web3j.tuples.generated.Tuple2;
+import org.web3j.tx.gas.ContractGasProvider;
 
 import io.zksync.domain.TimeRange;
 import io.zksync.domain.TransactionBuildHelper;
@@ -22,6 +24,9 @@ import io.zksync.domain.token.Token;
 import io.zksync.domain.transaction.ChangePubKey;
 import io.zksync.domain.transaction.Transfer;
 import io.zksync.domain.transaction.ZkSyncTransaction;
+import io.zksync.ethereum.DefaultEthereumProvider;
+import io.zksync.ethereum.EthereumProvider;
+import io.zksync.ethereum.wrappers.ZkSync;
 import io.zksync.provider.AsyncProvider;
 import io.zksync.signer.EthSignature;
 import io.zksync.signer.EthSigner;
@@ -236,6 +241,14 @@ public class DefaultZkASyncWallet<A extends ChangePubKeyVariant, S extends EthSi
     public CompletableFuture<Integer> getNonce() {
         return getState()
             .thenApply(state -> state.getCommitted().getNonce());
+    }
+
+    @Override
+    public EthereumProvider createEthereumProvider(Web3j web3j, ContractGasProvider contractGasProvider) {
+        String contractAddress = this.provider.contractAddress().join().getMainContract();
+        ZkSync contract = ZkSync.load(contractAddress, web3j, this.ethSigner.getTransactionManager(), contractGasProvider);
+        DefaultEthereumProvider ethereum = new DefaultEthereumProvider(web3j, this.ethSigner, contract);
+        return ethereum;
     }
 
     private CompletableFuture<String> submitSignedTransaction(ZkSyncTransaction signedTransaction,
