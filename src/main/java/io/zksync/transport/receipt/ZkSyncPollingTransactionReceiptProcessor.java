@@ -6,6 +6,7 @@ import io.zksync.domain.transaction.TransactionDetails;
 import io.zksync.exception.ZkSyncException;
 import io.zksync.provider.AsyncProvider;
 import io.zksync.transport.ZkTransactionStatus;
+import io.zksync.wallet.ZkASyncWallet;
 
 public class ZkSyncPollingTransactionReceiptProcessor extends ZkSyncTransactionReceiptProcessor {
 
@@ -17,6 +18,18 @@ public class ZkSyncPollingTransactionReceiptProcessor extends ZkSyncTransactionR
 
         this.sleepDuration = sleepDuration;
         this.attempts = attempts;
+    }
+
+    public ZkSyncPollingTransactionReceiptProcessor(ZkASyncWallet wallet, long sleepDuration, int attempts) {
+        this(wallet.getProvider(), sleepDuration, attempts);
+    }
+
+    public ZkSyncPollingTransactionReceiptProcessor(AsyncProvider provider) {
+        this(provider, 100, Integer.MAX_VALUE);
+    }
+
+    public ZkSyncPollingTransactionReceiptProcessor(ZkASyncWallet wallet) {
+        this(wallet.getProvider());
     }
 
     @Override
