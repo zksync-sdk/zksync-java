@@ -41,7 +41,6 @@ public class DefaultProvider implements Provider {
 
     @Override
     public AccountState getState(String accountAddress) {
-
         final AccountState response = transport.send("account_info", Collections.singletonList(accountAddress),
                 ZksAccountState.class);
 
@@ -60,7 +59,6 @@ public class DefaultProvider implements Provider {
 
     @Override
     public TransactionFeeDetails getTransactionFee(TransactionFeeBatchRequest feeRequest) {
-
         TransactionFeeDetails response = transport.send("get_txs_batch_fee_in_wei",
                 Arrays.asList(feeRequest.getTransactionTypesRaw(), feeRequest.getAddresses(),
                         feeRequest.getTokenIdentifier()),

@@ -41,7 +41,6 @@ public class DefaultAsyncProvider implements AsyncProvider {
 
     @Override
     public CompletableFuture<AccountState> getState(String accountAddress) {
-
         final CompletableFuture<AccountState> response = transport.sendAsync("account_info", Collections.singletonList(accountAddress),
                 ZksAccountState.class);
 
