@@ -501,6 +501,6 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
 
     @Override
     public <T extends ZkSyncTransaction> String submitTransaction(SignedTransaction<T> transaction) {
-        return submitSignedTransaction(transaction.getTransaction(), transaction.getEthereumSignature());
+        return submitSignedTransaction(transaction.getTransaction(), transaction.getEthereumSignature(), false);
     }
 }

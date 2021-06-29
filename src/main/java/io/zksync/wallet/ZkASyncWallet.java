@@ -15,6 +15,7 @@ import io.zksync.domain.state.AccountState;
 import io.zksync.domain.swap.Order;
 import io.zksync.domain.token.NFT;
 import io.zksync.domain.token.Token;
+import io.zksync.domain.token.Tokens;
 import io.zksync.domain.transaction.ZkSyncTransaction;
 import io.zksync.ethereum.EthereumProvider;
 import io.zksync.provider.AsyncProvider;
@@ -71,6 +72,8 @@ public interface ZkASyncWallet {
     CompletableFuture<Integer> getAccountId();
 
     CompletableFuture<Integer> getNonce();
+
+    CompletableFuture<Tokens> getTokens();
 
     String getAddress();
 

@@ -21,6 +21,7 @@ import io.zksync.domain.state.AccountState;
 import io.zksync.domain.swap.Order;
 import io.zksync.domain.token.NFT;
 import io.zksync.domain.token.Token;
+import io.zksync.domain.token.Tokens;
 import io.zksync.domain.transaction.ChangePubKey;
 import io.zksync.domain.transaction.Transfer;
 import io.zksync.domain.transaction.ZkSyncTransaction;
@@ -35,6 +36,8 @@ import io.zksync.signer.ZkSigner;
 public class DefaultZkASyncWallet<A extends ChangePubKeyVariant, S extends EthSigner<A>> implements ZkASyncWallet {
 
     private final TransactionBuildHelper helper;
+
+    private Tokens tokens;
 
     private S ethSigner;
     private ZkSigner zkSigner;
@@ -53,21 +56,21 @@ public class DefaultZkASyncWallet<A extends ChangePubKeyVariant, S extends EthSi
         this.accountId = null;
         this.pubKeyHash = null;
 
-        this.helper = new TransactionBuildHelper(this, this.provider.getTokens().join());
+        this.helper = new TransactionBuildHelper(this, this.getTokens().join());
     }
 
     @Override
     public CompletableFuture<String> setSigningKey(TransactionFee fee, Integer nonce, boolean onchainAuth,
             TimeRange timeRange) {
         if (onchainAuth) {
-            return this.helper.<ChangePubKeyOnchain>changePubKey(pubKeyHash, fee, nonce, timeRange)
+            return this.helper.<ChangePubKeyOnchain>changePubKey(this.getPubKeyHash().join(), fee, nonce, timeRange)
                 .thenApply(changePubKey -> {
                     zkSigner.signChangePubKey(changePubKey);
 
                     return this.submitSignedTransaction(changePubKey).join();
                 });
         } else {
-            return this.helper.<A>changePubKey(pubKeyHash, fee, nonce, timeRange)
+            return this.helper.<A>changePubKey(this.getPubKeyHash().join(), fee, nonce, timeRange)
                 .thenApply(changePubKey -> {
                     final ChangePubKey<A> changePubKeyAuth = ethSigner.signAuth(changePubKey).join();
                     final EthSignature ethSignature = ethSigner.signTransaction(changePubKey, nonce, this.helper.getToken(fee.getFeeToken()), fee.getFee()).join();
@@ -228,8 +231,21 @@ public class DefaultZkASyncWallet<A extends ChangePubKeyVariant, S extends EthSi
     }
 
     @Override
+    public CompletableFuture<Tokens> getTokens() {
+        if (this.tokens == null) {
+            return this.provider.getTokens()
+                .thenApply(tokens -> {
+                    this.tokens = tokens;
+                    return tokens;
+                });
+        } else {
+            return CompletableFuture.completedFuture(this.tokens);
+        }
+    }
+
+    @Override
     public <T extends ZkSyncTransaction> CompletableFuture<String> submitTransaction(SignedTransaction<T> transaction) {
-        return submitSignedTransaction(transaction.getTransaction(), transaction.getEthereumSignature());
+        return submitSignedTransaction(transaction.getTransaction(), transaction.getEthereumSignature(), false);
     }
 
     @Override
