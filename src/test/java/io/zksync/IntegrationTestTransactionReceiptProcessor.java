@@ -214,7 +214,7 @@ public class IntegrationTestTransactionReceiptProcessor {
         Order order2 = wallet.buildSignedOrder(ethSigner.getAddress(), ETHEREUM_COIN, ETHEREUM_COIN, new Tuple2<>(BigInteger.ONE, BigInteger.ONE), amount2, null, null).join();
         Swap swap = helper.swap(order1, order2, amount1, amount2, ETHEREUM_COIN).join();
         EthSignature ethSignature = ethSigner.signTransaction(swap, swap.getNonce(), ETHEREUM_COIN, swap.getFeeInteger()).join();
-        SignedTransaction<Swap> transaction = new SignedTransaction<>(zkSigner.signSwap(swap), ethSignature);
+        SignedTransaction<Swap> transaction = new SignedTransaction<>(zkSigner.signSwap(swap), ethSignature, order1.getEthereumSignature(), order2.getEthereumSignature());
         String hash = wallet.submitTransaction(transaction).join();
 
         System.out.println(hash);

@@ -90,7 +90,7 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
         final SignedTransaction<Transfer> signedTransfer = buildSignedTransferTx(to, fee.getFeeToken(), amount,
                 fee.getFee(), nonceToUse, timeRange);
 
-        return submitSignedTransaction(signedTransfer.getTransaction(), signedTransfer.getEthereumSignature(), false);
+        return submitSignedTransaction(signedTransfer.getTransaction(), signedTransfer.getEthereumSignature());
     }
 
     @Override
@@ -101,7 +101,7 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
         final SignedTransaction<Withdraw> signedWithdraw = buildSignedWithdrawTx(ethAddress, fee.getFeeToken(), amount,
                 fee.getFee(), nonceToUse, timeRange);
 
-        return submitSignedTransaction(signedWithdraw.getTransaction(), signedWithdraw.getEthereumSignature(),
+        return submitSignedTransaction(signedWithdraw.getTransaction(), signedWithdraw.getEthereumSignature()[0],
                 fastProcessing);
     }
 
@@ -112,8 +112,7 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
         final SignedTransaction<ForcedExit> signedForcedExit = buildSignedForcedExitTx(target, fee.getFeeToken(),
                 fee.getFee(), nonceToUse, timeRange);
 
-        return submitSignedTransaction(signedForcedExit.getTransaction(), signedForcedExit.getEthereumSignature(),
-                false);
+        return submitSignedTransaction(signedForcedExit.getTransaction(), signedForcedExit.getEthereumSignature());
     }
 
     @Override
@@ -123,8 +122,7 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
         final SignedTransaction<MintNFT> signedMintNFT = buildSignedMintNFTTx(recipient, contentHash, fee.getFeeToken(),
                 fee.getFee(), nonceToUse);
 
-        return submitSignedTransaction(signedMintNFT.getTransaction(), signedMintNFT.getEthereumSignature(),
-                false);
+        return submitSignedTransaction(signedMintNFT.getTransaction(), signedMintNFT.getEthereumSignature());
     }
 
     @Override
@@ -133,7 +131,7 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
 
         final SignedTransaction<WithdrawNFT> signedWithdrawNFT = buildSignedWithdrawNFTTx(to, token, fee.getFeeToken(), fee.getFee(), nonceToUse, timeRange);
 
-        return submitSignedTransaction(signedWithdrawNFT.getTransaction(), signedWithdrawNFT.getEthereumSignature(), false);
+        return submitSignedTransaction(signedWithdrawNFT.getTransaction(), signedWithdrawNFT.getEthereumSignature());
     }
 
     @SneakyThrows
@@ -182,7 +180,7 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
 
         final SignedTransaction<Swap> signedSwap = buildSignedSwapTx(order1, order2, amount1, amount2, fee.getFeeToken(), fee.getFee(), nonceToUse);
 
-        return submitSignedTransaction(signedSwap.getTransaction(), signedSwap.getEthereumSignature(), order1.getEthereumSignature(), order2.getEthereumSignature());
+        return submitSignedTransaction(signedSwap.getTransaction(), signedSwap.getEthereumSignature()[0], order1.getEthereumSignature(), order2.getEthereumSignature());
     }
 
     @Override
@@ -299,7 +297,7 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
             .build();
 
 
-        return new SignedTransaction<>(zkSigner.signChangePubKey(changePubKey), null);
+        return new SignedTransaction<>(zkSigner.signChangePubKey(changePubKey));
     }
 
     @SneakyThrows
@@ -478,7 +476,13 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
 
     private String submitSignedTransaction(ZkSyncTransaction signedTransaction,
                                          EthSignature ...ethereumSignature) {
-        return provider.submitTx(signedTransaction, ethereumSignature);
+        if (ethereumSignature == null || ethereumSignature.length == 0) {
+            return provider.submitTx(signedTransaction, null, false);
+        } else if (ethereumSignature.length == 1) {
+            return provider.submitTx(signedTransaction, ethereumSignature[0], false);
+        } else {
+            return provider.submitTx(signedTransaction, ethereumSignature);
+        }
     }
 
     private List<String> submitSignedBatch(List<ZkSyncTransaction> transactions, EthSignature ethereumSignature) {
@@ -501,6 +505,6 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
 
     @Override
     public <T extends ZkSyncTransaction> String submitTransaction(SignedTransaction<T> transaction) {
-        return submitSignedTransaction(transaction.getTransaction(), transaction.getEthereumSignature(), false);
+        return submitSignedTransaction(transaction.getTransaction(), transaction.getEthereumSignature());
     }
 }

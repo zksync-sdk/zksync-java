@@ -245,7 +245,7 @@ public class DefaultZkASyncWallet<A extends ChangePubKeyVariant, S extends EthSi
 
     @Override
     public <T extends ZkSyncTransaction> CompletableFuture<String> submitTransaction(SignedTransaction<T> transaction) {
-        return submitSignedTransaction(transaction.getTransaction(), transaction.getEthereumSignature(), false);
+        return submitSignedTransaction(transaction.getTransaction(), transaction.getEthereumSignature());
     }
 
     @Override
@@ -275,7 +275,13 @@ public class DefaultZkASyncWallet<A extends ChangePubKeyVariant, S extends EthSi
 
     private CompletableFuture<String> submitSignedTransaction(ZkSyncTransaction signedTransaction,
                                          EthSignature ...ethereumSignature) {
-        return provider.submitTx(signedTransaction, ethereumSignature);
+        if (ethereumSignature == null || ethereumSignature.length == 0) {
+            return provider.submitTx(signedTransaction, null, false);
+        } else if (ethereumSignature.length == 1) {
+            return provider.submitTx(signedTransaction, ethereumSignature[0], false);
+        } else {
+            return provider.submitTx(signedTransaction, ethereumSignature);
+        }
     }
 
     private CompletableFuture<List<String>> submitSignedBatch(List<ZkSyncTransaction> transactions, EthSignature ethereumSignature) {
