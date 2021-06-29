@@ -28,6 +28,7 @@ import io.zksync.domain.transaction.Transfer;
 import io.zksync.domain.transaction.Withdraw;
 import io.zksync.domain.transaction.WithdrawNFT;
 import io.zksync.wallet.ZkASyncWallet;
+import io.zksync.wallet.ZkSyncWallet;
 import lombok.Getter;
 
 @Getter
@@ -49,6 +50,16 @@ public class TransactionBuildHelper {
         this.transactionFee = asyncWallet.getProvider()::getTransactionFee;
         this.transactionFeeBatch = asyncWallet.getProvider()::getTransactionFee;
         this.address = asyncWallet::getAddress;
+    }
+
+    public TransactionBuildHelper(ZkSyncWallet wallet, Tokens tokens) {
+        this.tokens = tokens;
+
+        this.accountId = () -> CompletableFuture.completedFuture(wallet.getAccountId());
+        this.nonce = () -> CompletableFuture.completedFuture(wallet.getState().getCommitted().getNonce());
+        this.transactionFee = (request) -> CompletableFuture.completedFuture(wallet.getProvider().getTransactionFee(request));
+        this.transactionFeeBatch = (request) -> CompletableFuture.completedFuture(wallet.getProvider().getTransactionFee(request));
+        this.address = wallet::getAddress;
     }
 
     public Token getToken(String tokenIdentifier) {
