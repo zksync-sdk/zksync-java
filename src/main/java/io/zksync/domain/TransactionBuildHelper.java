@@ -114,7 +114,9 @@ public class TransactionBuildHelper {
         return transactionFee.apply(feeRequest)
             .thenApply(feeTotal -> {
                 TransactionFee fee = new TransactionFee(tokenId.getSymbol(), feeTotal.getTotalFeeInteger());
-                return this.<A>changePubKey(pubKeyHash, fee, null, null).join();
+                ChangePubKey<A> changePubKey = this.<A>changePubKey(pubKeyHash, fee, null, null).join();
+                changePubKey.setEthAuthData(auth);
+                return changePubKey;
             });
     }
 

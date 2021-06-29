@@ -96,6 +96,7 @@ public class IntegrationTestTransactionReceiptProcessor {
     public void setupPublicKey() throws InterruptedException, ExecutionException, TimeoutException {
         TransactionBuildHelper helper = new TransactionBuildHelper(this.wallet, this.wallet.getTokens().join());
         ChangePubKey<ChangePubKeyECDSA> changePubKey = helper.changePubKey(zkSigner.getPublicKeyHash(), ETHEREUM_COIN, new ChangePubKeyECDSA(null, null)).join();
+        changePubKey = ethSigner.signAuth(changePubKey).join();
         EthSignature ethSignature = ethSigner.signTransaction(changePubKey, changePubKey.getNonce(), ETHEREUM_COIN, changePubKey.getFeeInteger()).join();
         SignedTransaction<ChangePubKey<ChangePubKeyECDSA>> transaction = new SignedTransaction<>(zkSigner.signChangePubKey(changePubKey), ethSignature);
         String hash = wallet.submitTransaction(transaction).join();
