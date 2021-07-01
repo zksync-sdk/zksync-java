@@ -37,8 +37,6 @@ public class DefaultZkASyncWallet<A extends ChangePubKeyVariant, S extends EthSi
 
     private final TransactionBuildHelper helper;
 
-    private Tokens tokens;
-
     private S ethSigner;
     private ZkSigner zkSigner;
     private AsyncProvider provider;
@@ -232,15 +230,7 @@ public class DefaultZkASyncWallet<A extends ChangePubKeyVariant, S extends EthSi
 
     @Override
     public CompletableFuture<Tokens> getTokens() {
-        if (this.tokens == null) {
-            return this.provider.getTokens()
-                .thenApply(tokens -> {
-                    this.tokens = tokens;
-                    return tokens;
-                });
-        } else {
-            return CompletableFuture.completedFuture(this.tokens);
-        }
+        return this.provider.getTokens();
     }
 
     @Override

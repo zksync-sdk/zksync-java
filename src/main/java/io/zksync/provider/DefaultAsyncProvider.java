@@ -25,7 +25,6 @@ import io.zksync.transport.response.ZksTokens;
 import io.zksync.transport.response.ZksTransactionDetails;
 import io.zksync.transport.response.ZksTransactionFeeDetails;
 import io.zksync.wallet.SignedTransaction;
-import lombok.AllArgsConstructor;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -35,9 +34,15 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-@AllArgsConstructor
 public class DefaultAsyncProvider implements AsyncProvider {
     private ZkSyncTransport transport;
+
+    private Tokens tokens;
+
+    public DefaultAsyncProvider(ZkSyncTransport transport) {
+        this.transport = transport;
+        this.tokens = null;
+    }
 
     @Override
     public CompletableFuture<AccountState> getState(String accountAddress) {
@@ -69,9 +74,11 @@ public class DefaultAsyncProvider implements AsyncProvider {
 
     @Override
     public CompletableFuture<Tokens> getTokens() {
-        final CompletableFuture<Tokens> response = transport.sendAsync("tokens", Collections.emptyList(), ZksTokens.class);
-
-        return response;
+        if (this.tokens == null) {
+            return this.updateTokenSet();
+        } else {
+            return CompletableFuture.completedFuture(this.tokens);
+        }
     }
 
     @Override
@@ -154,5 +161,15 @@ public class DefaultAsyncProvider implements AsyncProvider {
                 ZksSentTransaction.class);
 
         return response;
+    }
+
+    @Override
+    public CompletableFuture<Tokens> updateTokenSet() {
+        final CompletableFuture<Tokens> response = transport.sendAsync("tokens", Collections.emptyList(), ZksTokens.class);
+
+        return response.thenApply(tokens -> {
+            this.tokens = tokens;
+            return tokens;
+        });
     }
 }

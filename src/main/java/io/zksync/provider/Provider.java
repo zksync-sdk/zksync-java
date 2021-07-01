@@ -145,6 +145,12 @@ public interface Provider {
     String getEthTransactionForWithdrawal(String zkSyncWithdrawalHash);
 
     /**
+     * Fetch and update local cache of token list
+     * 
+     */
+    void updateTokenSet();
+
+    /**
      * Create default ZkSync provider by given chain id
      * 
      * @param chainId - Chain id supproted by ZkSync network

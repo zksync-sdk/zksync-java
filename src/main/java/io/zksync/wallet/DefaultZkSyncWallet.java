@@ -252,6 +252,11 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
         return this.ethSigner.getAddress();
     }
 
+    @Override
+    public Tokens getTokens() {
+        return this.provider.getTokens();
+    }
+
     @SneakyThrows
     private SignedTransaction<ChangePubKey<A>> buildSignedChangePubKeyTx(TransactionFee fee, Integer nonce,
         TimeRange timeRange) {

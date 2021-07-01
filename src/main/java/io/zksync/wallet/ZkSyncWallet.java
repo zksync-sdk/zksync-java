@@ -7,6 +7,7 @@ import io.zksync.domain.state.AccountState;
 import io.zksync.domain.swap.Order;
 import io.zksync.domain.token.NFT;
 import io.zksync.domain.token.Token;
+import io.zksync.domain.token.Tokens;
 import io.zksync.domain.transaction.ZkSyncTransaction;
 import io.zksync.ethereum.EthereumProvider;
 import io.zksync.provider.DefaultProvider;
@@ -72,6 +73,8 @@ public interface ZkSyncWallet {
     Integer getAccountId();
 
     String getAddress();
+
+    Tokens getTokens();
 
     EthereumProvider createEthereumProvider(Web3j web3j, ContractGasProvider contractGasProvider);
 }

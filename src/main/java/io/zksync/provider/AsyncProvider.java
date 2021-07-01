@@ -145,6 +145,13 @@ public interface AsyncProvider {
     CompletableFuture<String> getEthTransactionForWithdrawal(String zkSyncWithdrawalHash);
 
     /**
+     * Fetch and update local cache of token list
+     * 
+     * @return Tokens information
+     */
+    CompletableFuture<Tokens> updateTokenSet();
+
+    /**
      * Create default ZkSync provider by given chain id
      * 
      * @param chainId - Chain id supproted by ZkSync network
