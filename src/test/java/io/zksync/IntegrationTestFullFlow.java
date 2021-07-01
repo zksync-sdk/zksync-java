@@ -1,7 +1,8 @@
 package io.zksync;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.Assert.assertTrue;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -104,6 +105,7 @@ public class IntegrationTestFullFlow {
         TransactionDetails receipt = receiptProcessor.waitForTransaction(hash, ZkTransactionStatus.COMMITED).get(30, TimeUnit.SECONDS);
         assertNotNull(receipt);
         assertTrue(receipt.getExecuted());
+        assertTrue(receipt.getSuccess());
     }
 
     @Test
@@ -148,6 +150,7 @@ public class IntegrationTestFullFlow {
         TransactionDetails receipt = receiptProcessor.waitForTransaction(hash, ZkTransactionStatus.COMMITED).get(30, TimeUnit.SECONDS);
         assertNotNull(receipt);
         assertTrue(receipt.getExecuted());
+        assertTrue(receipt.getSuccess());
     }
 
     @Test
@@ -175,6 +178,7 @@ public class IntegrationTestFullFlow {
         TransactionDetails receipt = receiptProcessor.waitForTransaction(hash, ZkTransactionStatus.COMMITED).get(30, TimeUnit.SECONDS);
         assertNotNull(receipt);
         assertTrue(receipt.getExecuted());
+        assertTrue(receipt.getSuccess());
     }
 
     @Test 
@@ -200,6 +204,7 @@ public class IntegrationTestFullFlow {
         TransactionDetails receipt = receiptProcessor.waitForTransaction(hash, ZkTransactionStatus.COMMITED).get(30, TimeUnit.SECONDS);
         assertNotNull(receipt);
         assertTrue(receipt.getExecuted());
+        assertTrue(receipt.getSuccess());
     }
 
     @Test
@@ -222,6 +227,7 @@ public class IntegrationTestFullFlow {
         TransactionDetails receipt = receiptProcessor.waitForTransaction(hash, ZkTransactionStatus.COMMITED).get(30, TimeUnit.SECONDS);
         assertNotNull(receipt);
         assertTrue(receipt.getExecuted());
+        assertTrue(receipt.getSuccess());
     }
 
     @Test
@@ -248,10 +254,11 @@ public class IntegrationTestFullFlow {
         TransactionDetails receipt = receiptProcessor.waitForTransaction(hash, ZkTransactionStatus.COMMITED).get(30, TimeUnit.SECONDS);
         assertNotNull(receipt);
         assertTrue(receipt.getExecuted());
+        assertTrue(receipt.getSuccess());
     }
 
     @Test
-    public void transferNFT() {
+    public void transferNFT() throws InterruptedException, ExecutionException, TimeoutException {
         AccountState state = wallet.getState();
         TransactionFeeDetails details = wallet.getProvider().getTransactionFee(
             TransactionFeeBatchRequest.builder()
@@ -269,9 +276,14 @@ public class IntegrationTestFullFlow {
             new TimeRange(0, 4294967295L)
         );
 
-        System.out.println(hashes);
+        hashes.forEach(System.out::println);
 
-        
+        for (String hash : hashes) {
+            TransactionDetails receipt = receiptProcessor.waitForTransaction(hash, ZkTransactionStatus.COMMITED).get(30, TimeUnit.SECONDS);
+            assertNotNull(receipt);
+            assertTrue(receipt.getExecuted());
+            assertTrue(receipt.getSuccess());
+        }
     }
 
     @Test
@@ -295,6 +307,10 @@ public class IntegrationTestFullFlow {
         TransactionDetails receipt = receiptProcessor.waitForTransaction(hash, ZkTransactionStatus.COMMITED).get(30, TimeUnit.SECONDS);
         assertNotNull(receipt);
         assertTrue(receipt.getExecuted());
+        
+        // Here should be failed transaction cause ZkSync restricts swaps the same tokens.
+        // This just testing purpose
+        assertFalse(receipt.getSuccess());
     }
 
     @Test

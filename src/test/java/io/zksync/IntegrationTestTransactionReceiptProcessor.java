@@ -1,5 +1,6 @@
 package io.zksync;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -106,6 +107,7 @@ public class IntegrationTestTransactionReceiptProcessor {
         TransactionDetails receipt = receiptProcessor.waitForTransaction(hash, ZkTransactionStatus.COMMITED).get(30, TimeUnit.SECONDS);
         assertNotNull(receipt);
         assertTrue(receipt.getExecuted());
+        assertTrue(receipt.getSuccess());
     }
 
     @Test
@@ -121,6 +123,7 @@ public class IntegrationTestTransactionReceiptProcessor {
         TransactionDetails receipt = receiptProcessor.waitForTransaction(hash, ZkTransactionStatus.COMMITED).get(30, TimeUnit.SECONDS);
         assertNotNull(receipt);
         assertTrue(receipt.getExecuted());
+        assertTrue(receipt.getSuccess());
     }
 
     @Test
@@ -136,6 +139,7 @@ public class IntegrationTestTransactionReceiptProcessor {
         TransactionDetails receipt = receiptProcessor.waitForTransaction(hash, ZkTransactionStatus.COMMITED).get(30, TimeUnit.SECONDS);
         assertNotNull(receipt);
         assertTrue(receipt.getExecuted());
+        assertTrue(receipt.getSuccess());
     }
 
     @Test 
@@ -151,6 +155,7 @@ public class IntegrationTestTransactionReceiptProcessor {
         TransactionDetails receipt = receiptProcessor.waitForTransaction(hash, ZkTransactionStatus.COMMITED).get(30, TimeUnit.SECONDS);
         assertNotNull(receipt);
         assertTrue(receipt.getExecuted());
+        assertTrue(receipt.getSuccess());
     }
 
     @Test
@@ -169,6 +174,7 @@ public class IntegrationTestTransactionReceiptProcessor {
         TransactionDetails receipt = receiptProcessor.waitForTransaction(hash, ZkTransactionStatus.COMMITED).get(30, TimeUnit.SECONDS);
         assertNotNull(receipt);
         assertTrue(receipt.getExecuted());
+        assertTrue(receipt.getSuccess());
     }
 
     @Test
@@ -185,6 +191,7 @@ public class IntegrationTestTransactionReceiptProcessor {
         TransactionDetails receipt = receiptProcessor.waitForTransaction(hash, ZkTransactionStatus.COMMITED).get(30, TimeUnit.SECONDS);
         assertNotNull(receipt);
         assertTrue(receipt.getExecuted());
+        assertTrue(receipt.getSuccess());
     }
 
     @Test
@@ -203,6 +210,7 @@ public class IntegrationTestTransactionReceiptProcessor {
             TransactionDetails receipt = receiptProcessor.waitForTransaction(hash, ZkTransactionStatus.COMMITED).get(30, TimeUnit.SECONDS);
             assertNotNull(receipt);
             assertTrue(receipt.getExecuted());
+            assertTrue(receipt.getSuccess());
         }
     }
 
@@ -223,6 +231,10 @@ public class IntegrationTestTransactionReceiptProcessor {
         TransactionDetails receipt = receiptProcessor.waitForTransaction(hash, ZkTransactionStatus.COMMITED).get(30, TimeUnit.SECONDS);
         assertNotNull(receipt);
         assertTrue(receipt.getExecuted());
+
+        // Here should be failed transaction cause ZkSync restricts swaps the same tokens.
+        // This just testing purpose
+        assertFalse(receipt.getSuccess());
     }
 
     @Test
