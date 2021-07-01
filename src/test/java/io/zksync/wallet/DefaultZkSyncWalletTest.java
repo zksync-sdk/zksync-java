@@ -27,7 +27,6 @@ import io.zksync.domain.transaction.WithdrawNFT;
 import io.zksync.domain.transaction.Swap;
 import io.zksync.provider.Provider;
 import io.zksync.signer.EthSignature;
-import io.zksync.signer.EthSigner;
 import io.zksync.signer.DefaultEthSigner;
 import io.zksync.signer.ZkSigner;
 import io.zksync.signer.EthSignature.SignatureType;
@@ -43,7 +42,7 @@ public class DefaultZkSyncWalletTest {
     private static final String ETH_PRIVATE_KEY = "0x000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f";
 
     private ZkSyncWallet wallet;
-    private EthSigner ethSigner;
+    private DefaultEthSigner ethSigner;
     private ZkSigner zkSigner;
 
     @Before

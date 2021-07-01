@@ -7,20 +7,23 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import io.zksync.domain.transaction.ZkSyncTransaction;
 import io.zksync.signer.EthSignature;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 @Builder
-@AllArgsConstructor
 public class SignedTransaction<T extends ZkSyncTransaction> {
 
     @JsonIgnore
     T transaction;
 
     @JsonIgnore
-    EthSignature ethereumSignature;
+    EthSignature []ethereumSignature;
+
+    public SignedTransaction(T transaction, EthSignature ...ethereumSignature) {
+        this.transaction = transaction;
+        this.ethereumSignature = ethereumSignature;
+    }
 
     @JsonGetter
     public T getTx() {
@@ -28,11 +31,11 @@ public class SignedTransaction<T extends ZkSyncTransaction> {
     }
 
     @JsonGetter
-    public EthSignature getSignature() {
+    public EthSignature[] getSignature() {
         return ethereumSignature;
     }
 
     public static <T extends ZkSyncTransaction> SignedTransaction<T> fromPair(Pair<T, EthSignature> tx) {
-        return new SignedTransaction<T>(tx.getLeft(), tx.getRight());
+        return new SignedTransaction<T>(tx.getLeft(), new EthSignature[] {tx.getRight()});
     }
 }

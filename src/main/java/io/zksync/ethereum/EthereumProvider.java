@@ -6,6 +6,7 @@ import java.util.concurrent.CompletableFuture;
 
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
+import io.zksync.domain.token.NFT;
 import io.zksync.domain.token.Token;
 
 public interface EthereumProvider {
@@ -56,6 +57,15 @@ public interface EthereumProvider {
      * @return CompletableFuture for waiting for transaction mine
      */
     CompletableFuture<TransactionReceipt> fullExit(Token token, Integer accountId);
+
+    /**
+     * Return back nft. 
+     * 
+     * @param token - NFT Token object supported by ZkSync
+     * @param accountId - Id of account in ZkSync
+     * @return CompletableFuture for waiting for transaction mine
+     */
+    CompletableFuture<TransactionReceipt> fullExitNFT(NFT token, Integer accountId);
 
     /**
      * Setup L2 public key hash for specific nonce

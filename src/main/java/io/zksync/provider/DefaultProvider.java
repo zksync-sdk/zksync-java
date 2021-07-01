@@ -25,7 +25,6 @@ import io.zksync.transport.response.ZksTokens;
 import io.zksync.transport.response.ZksTransactionDetails;
 import io.zksync.transport.response.ZksTransactionFeeDetails;
 import io.zksync.wallet.SignedTransaction;
-import lombok.AllArgsConstructor;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -34,14 +33,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@AllArgsConstructor
 public class DefaultProvider implements Provider {
 
     private ZkSyncTransport transport;
 
+    private Tokens tokens;
+
+    public DefaultProvider(ZkSyncTransport transport) {
+        this.transport = transport;
+        this.tokens = null;
+    }
+
     @Override
     public AccountState getState(String accountAddress) {
-
         final AccountState response = transport.send("account_info", Collections.singletonList(accountAddress),
                 ZksAccountState.class);
 
@@ -60,7 +64,6 @@ public class DefaultProvider implements Provider {
 
     @Override
     public TransactionFeeDetails getTransactionFee(TransactionFeeBatchRequest feeRequest) {
-
         TransactionFeeDetails response = transport.send("get_txs_batch_fee_in_wei",
                 Arrays.asList(feeRequest.getTransactionTypesRaw(), feeRequest.getAddresses(),
                         feeRequest.getTokenIdentifier()),
@@ -71,9 +74,11 @@ public class DefaultProvider implements Provider {
 
     @Override
     public Tokens getTokens() {
-        final Tokens response = transport.send("tokens", Collections.emptyList(), ZksTokens.class);
+        if (this.tokens == null) {
+            this.updateTokenSet();
+        }
 
-        return response;
+        return this.tokens;
     }
 
     @Override
@@ -156,5 +161,10 @@ public class DefaultProvider implements Provider {
                 ZksSentTransaction.class);
 
         return response;
+    }
+
+    public void updateTokenSet() {
+        final Tokens response = transport.send("tokens", Collections.emptyList(), ZksTokens.class);
+        this.tokens = response;
     }
 }

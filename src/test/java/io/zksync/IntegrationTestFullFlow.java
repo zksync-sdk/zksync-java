@@ -1,12 +1,16 @@
 package io.zksync;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
@@ -15,6 +19,7 @@ import org.junit.Test;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
+import org.web3j.tuples.generated.Tuple2;
 import org.web3j.tx.gas.DefaultGasProvider;
 import org.web3j.utils.Convert;
 import org.web3j.utils.Numeric;
@@ -28,12 +33,17 @@ import io.zksync.domain.fee.TransactionFeeDetails;
 import io.zksync.domain.fee.TransactionFeeRequest;
 import io.zksync.domain.fee.TransactionType;
 import io.zksync.domain.state.AccountState;
+import io.zksync.domain.swap.Order;
 import io.zksync.domain.token.Token;
+import io.zksync.domain.transaction.TransactionDetails;
 import io.zksync.ethereum.EthereumProvider;
+import io.zksync.provider.AsyncProvider;
 import io.zksync.provider.Provider;
 import io.zksync.signer.DefaultEthSigner;
-import io.zksync.signer.EthSigner;
 import io.zksync.signer.ZkSigner;
+import io.zksync.transport.ZkTransactionStatus;
+import io.zksync.transport.receipt.ZkSyncPollingTransactionReceiptProcessor;
+import io.zksync.transport.receipt.ZkSyncTransactionReceiptProcessor;
 import io.zksync.wallet.ZkSyncWallet;
 
 // TODO: Comment @Ignore and fill placeholders to use this test
@@ -48,19 +58,22 @@ public class IntegrationTestFullFlow {
     private ZkSyncWallet wallet;
     private EthereumProvider ethereum;
 
-    private EthSigner ethSigner;
+    private DefaultEthSigner ethSigner;
     private ZkSigner zkSigner;
+
+    private ZkSyncTransactionReceiptProcessor receiptProcessor;
 
     @Before
     public void setup() {
         Web3j web3j = Web3j.build(new HttpService("{{ethereum_web3_rpc_url}}"));
         ethSigner = DefaultEthSigner.fromRawPrivateKey(web3j, PRIVATE_KEY);
-        zkSigner = ZkSigner.fromEthSigner(ethSigner, ChainId.Rinkeby);
+        zkSigner = ZkSigner.fromEthSigner(ethSigner, ChainId.Ropsten);
 
-        wallet = ZkSyncWallet.build(ethSigner, zkSigner, Provider.betaProvider(ChainId.Rinkeby));
+        wallet = ZkSyncWallet.build(ethSigner, zkSigner, Provider.defaultProvider(ChainId.Ropsten));
         ethereum = wallet.createEthereumProvider(
                 web3j,
                 new DefaultGasProvider());
+        receiptProcessor = new ZkSyncPollingTransactionReceiptProcessor(AsyncProvider.defaultProvider(ChainId.Ropsten));
     }
 
     @Test
@@ -75,7 +88,7 @@ public class IntegrationTestFullFlow {
     }
 
     @Test
-    public void setupPublicKey() {
+    public void setupPublicKey() throws InterruptedException, ExecutionException, TimeoutException {
         AccountState state = wallet.getState();
         TransactionFeeDetails details = wallet.getProvider().getTransactionFee(
             TransactionFeeRequest.builder()
@@ -88,6 +101,11 @@ public class IntegrationTestFullFlow {
         String hash =  wallet.setSigningKey(fee, state.getCommitted().getNonce(), false, new TimeRange(0, 4294967295L));
 
         System.out.println(hash);
+
+        TransactionDetails receipt = receiptProcessor.waitForTransaction(hash, ZkTransactionStatus.COMMITED).get(30, TimeUnit.SECONDS);
+        assertNotNull(receipt);
+        assertTrue(receipt.getExecuted());
+        assertTrue(receipt.getSuccess());
     }
 
     @Test
@@ -109,7 +127,7 @@ public class IntegrationTestFullFlow {
     }
 
     @Test
-    public void transferFunds() {
+    public void transferFunds() throws InterruptedException, ExecutionException, TimeoutException {
         AccountState state = wallet.getState();
         TransactionFeeDetails details = wallet.getProvider().getTransactionFee(
             TransactionFeeRequest.builder()
@@ -128,10 +146,15 @@ public class IntegrationTestFullFlow {
         );
 
         System.out.println(hash);
+
+        TransactionDetails receipt = receiptProcessor.waitForTransaction(hash, ZkTransactionStatus.COMMITED).get(30, TimeUnit.SECONDS);
+        assertNotNull(receipt);
+        assertTrue(receipt.getExecuted());
+        assertTrue(receipt.getSuccess());
     }
 
     @Test
-    public void withdraw() {
+    public void withdraw() throws InterruptedException, ExecutionException, TimeoutException {
         AccountState state = wallet.getState();
         TransactionFeeDetails details = wallet.getProvider().getTransactionFee(
             TransactionFeeRequest.builder()
@@ -151,10 +174,15 @@ public class IntegrationTestFullFlow {
         );
 
         System.out.println(hash);
+
+        TransactionDetails receipt = receiptProcessor.waitForTransaction(hash, ZkTransactionStatus.COMMITED).get(30, TimeUnit.SECONDS);
+        assertNotNull(receipt);
+        assertTrue(receipt.getExecuted());
+        assertTrue(receipt.getSuccess());
     }
 
     @Test 
-    public void forcedExit() {
+    public void forcedExit() throws InterruptedException, ExecutionException, TimeoutException {
         AccountState state = wallet.getState();
         TransactionFeeDetails details = wallet.getProvider().getTransactionFee(
             TransactionFeeRequest.builder()
@@ -172,10 +200,15 @@ public class IntegrationTestFullFlow {
         );
 
         System.out.println(hash);
+
+        TransactionDetails receipt = receiptProcessor.waitForTransaction(hash, ZkTransactionStatus.COMMITED).get(30, TimeUnit.SECONDS);
+        assertNotNull(receipt);
+        assertTrue(receipt.getExecuted());
+        assertTrue(receipt.getSuccess());
     }
 
     @Test
-    public void mintNFT() {
+    public void mintNFT() throws InterruptedException, ExecutionException, TimeoutException {
         AccountState state = wallet.getState();
         TransactionFeeDetails details = wallet.getProvider().getTransactionFee(
             TransactionFeeRequest.builder()
@@ -190,10 +223,15 @@ public class IntegrationTestFullFlow {
         String hash = wallet.syncMintNFT(state.getAddress(), contentHash, fee, state.getCommitted().getNonce());
 
         System.out.println(hash);
+
+        TransactionDetails receipt = receiptProcessor.waitForTransaction(hash, ZkTransactionStatus.COMMITED).get(30, TimeUnit.SECONDS);
+        assertNotNull(receipt);
+        assertTrue(receipt.getExecuted());
+        assertTrue(receipt.getSuccess());
     }
 
     @Test
-    public void withdrawNFT() {
+    public void withdrawNFT() throws InterruptedException, ExecutionException, TimeoutException {
         AccountState state = wallet.getState();
         TransactionFeeDetails details = wallet.getProvider().getTransactionFee(
             TransactionFeeRequest.builder()
@@ -212,10 +250,15 @@ public class IntegrationTestFullFlow {
         );
 
         System.out.println(hash);
+
+        TransactionDetails receipt = receiptProcessor.waitForTransaction(hash, ZkTransactionStatus.COMMITED).get(30, TimeUnit.SECONDS);
+        assertNotNull(receipt);
+        assertTrue(receipt.getExecuted());
+        assertTrue(receipt.getSuccess());
     }
 
     @Test
-    public void transferNFT() {
+    public void transferNFT() throws InterruptedException, ExecutionException, TimeoutException {
         AccountState state = wallet.getState();
         TransactionFeeDetails details = wallet.getProvider().getTransactionFee(
             TransactionFeeBatchRequest.builder()
@@ -233,7 +276,41 @@ public class IntegrationTestFullFlow {
             new TimeRange(0, 4294967295L)
         );
 
-        System.out.println(hashes);
+        hashes.forEach(System.out::println);
+
+        for (String hash : hashes) {
+            TransactionDetails receipt = receiptProcessor.waitForTransaction(hash, ZkTransactionStatus.COMMITED).get(30, TimeUnit.SECONDS);
+            assertNotNull(receipt);
+            assertTrue(receipt.getExecuted());
+            assertTrue(receipt.getSuccess());
+        }
+    }
+
+    @Test
+    public void swapTokens() throws InterruptedException, ExecutionException, TimeoutException {
+        AccountState state = wallet.getState();
+        TransactionFeeDetails details = wallet.getProvider().getTransactionFee(
+            TransactionFeeBatchRequest.builder()
+                .transactionType(Pair.of(TransactionType.SWAP, state.getAddress()))
+                .tokenIdentifier(ETHEREUM_COIN.getAddress())
+                .build()
+        );
+        TransactionFee fee = new TransactionFee(ETHEREUM_COIN.getAddress(), details.getTotalFeeInteger());
+        BigInteger amount1 = Convert.toWei(BigDecimal.valueOf(1000), Unit.GWEI).toBigInteger();
+        BigInteger amount2 = Convert.toWei(BigDecimal.valueOf(1000), Unit.GWEI).toBigInteger();
+        Order order1 = wallet.buildSignedOrder(state.getAddress(), ETHEREUM_COIN, ETHEREUM_COIN, new Tuple2<>(BigInteger.ONE, BigInteger.ONE), amount1, state.getCommitted().getNonce(), new TimeRange(0, 4294967295L));
+        Order order2 = wallet.buildSignedOrder(state.getAddress(), ETHEREUM_COIN, ETHEREUM_COIN, new Tuple2<>(BigInteger.ONE, BigInteger.ONE), amount2, state.getCommitted().getNonce(), new TimeRange(0, 4294967295L));
+        String hash = wallet.syncSwap(order1, order2, amount1, amount2, fee, state.getCommitted().getNonce());
+
+        System.out.println(hash);
+
+        TransactionDetails receipt = receiptProcessor.waitForTransaction(hash, ZkTransactionStatus.COMMITED).get(30, TimeUnit.SECONDS);
+        assertNotNull(receipt);
+        assertTrue(receipt.getExecuted());
+        
+        // Here should be failed transaction cause ZkSync restricts swaps the same tokens.
+        // This just testing purpose
+        assertFalse(receipt.getSuccess());
     }
 
     @Test

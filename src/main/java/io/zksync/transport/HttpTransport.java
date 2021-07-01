@@ -1,5 +1,6 @@
 package io.zksync.transport;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.zksync.exception.ZkSyncException;
 import okhttp3.*;
@@ -7,6 +8,7 @@ import okhttp3.*;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class HttpTransport implements ZkSyncTransport {
 
@@ -61,5 +63,49 @@ public class HttpTransport implements ZkSyncTransport {
         } catch (IOException e) {
             throw new ZkSyncException("There was an error when sending the request", e);
         }
+    }
+
+    @Override
+    public <R, T extends ZkSyncResponse<R>> CompletableFuture<R> sendAsync(String method, List<Object> params, Class<T> returntype) {
+        final CompletableFuture<R> future = new CompletableFuture<>();
+        final ZkSyncRequest zkRequest = ZkSyncRequest
+                    .builder()
+                    .method(method)
+                    .params(params)
+                    .build();
+            String bodyJson;
+            try {
+                bodyJson = objectMapper.writeValueAsString(zkRequest);
+            } catch (JsonProcessingException e) {
+                future.completeExceptionally(e);
+                return future;
+            }
+            final RequestBody body = RequestBody.create(bodyJson, APPLICATION_JSON);
+
+            final Request request = new Request.Builder()
+                    .url(url)
+                    .post(body)
+                    .build();
+            httpClient.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onResponse(Call _arg0, Response response) throws IOException {
+                    final String responseString = response.body().string();
+
+                    final ZkSyncResponse<R> resultJson = objectMapper.readValue(responseString, returntype);
+
+                    if (resultJson.getError() != null) {
+                        future.completeExceptionally(new ZkSyncException(resultJson.getError()));
+                    }
+
+                    future.complete(resultJson.getResult());
+                }
+
+                @Override
+                public void onFailure(Call _arg0, IOException error) {
+                    future.completeExceptionally(error);
+                }
+            });
+
+            return future;
     }
 }

@@ -110,7 +110,7 @@ dependencies {
     implementation 'org.web3j:crypto:5.0.0'
 
     // === For Zk Signing ===
-    implementation 'io.zksync.sdk:zkscrypto:0.0.5.3'
+    implementation 'io.zksync.sdk:zkscrypto:0.0.5.4'
     implementation 'net.java.dev.jna:jna:5.6.0'
     implementation 'org.scijava:native-lib-loader:2.3.4'
 
