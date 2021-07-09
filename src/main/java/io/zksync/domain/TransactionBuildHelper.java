@@ -69,6 +69,16 @@ public class TransactionBuildHelper {
         return token;
     }
 
+    /**
+     * Build changePubKey transaction
+     * 
+     * @param <A> - Authentication variant type
+     * @param pubKeyHash - Public key hash in ZkSync format
+     * @param fee - Fee amount for paying the transaction
+     * @param nonce - Nonce value
+     * @param timeRange - Timerange of validity of the transcation
+     * @return - Unsigned transaction object
+     */
     public <A extends ChangePubKeyVariant> CompletableFuture<ChangePubKey<A>> changePubKey(String pubKeyHash, TransactionFee fee, Integer nonce, TimeRange timeRange) {
         final String tokenIdentifier = fee.getFeeToken();
 
@@ -87,14 +97,42 @@ public class TransactionBuildHelper {
         });
     }
 
+    /**
+     * Build changePubKey transaction (With default time range)
+     * 
+     * @param <A> - Authentication variant type
+     * @param pubKeyHash - Public key hash in ZkSync format
+     * @param fee - Fee amount for paying the transaction
+     * @param nonce - Nonce value
+     * @return - Unsigned transaction object
+     */
     public <A extends ChangePubKeyVariant> CompletableFuture<ChangePubKey<A>> changePubKey(String pubKeyHash, TransactionFee fee, Integer nonce) {
         return changePubKey(pubKeyHash, fee, nonce, null);
     }
 
+    /**
+     * Build changePubKey transaction (With default time range and load nonce from network)
+     * 
+     * @param <A> - Authentication variant type
+     * @param pubKeyHash - Public key hash in ZkSync format
+     * @param fee - Fee amount for paying the transaction
+     * @return - Unsigned transaction object
+     */
     public <A extends ChangePubKeyVariant> CompletableFuture<ChangePubKey<A>> changePubKey(String pubKeyHash, TransactionFee fee) {
         return changePubKey(pubKeyHash, fee, null, null);
     }
 
+    /**
+     * Build changePubKey transaction (With default time range and load nonce from network)
+     * This function will estimate the fee for the transaction
+     * 
+     * @param <A> - Authentication variant type
+     * @param <T> - Token type
+     * @param pubKeyHash - Public key hash in ZkSync format
+     * @param tokenId - Fundible token id
+     * @param auth - Authentication variant object
+     * @return - Unsigned transaction object
+     */
     public <A extends ChangePubKeyVariant, T extends TokenId> CompletableFuture<ChangePubKey<A>> changePubKey(String pubKeyHash, T tokenId, A auth) {
         TransactionType transactionType;
         if (auth.getType() == ChangePubKeyAuthType.CREATE2) {
@@ -124,6 +162,16 @@ public class TransactionBuildHelper {
      * Transfer transaction
      */
 
+    /**
+     * Build transfer transaction
+     * 
+     * @param to - Ethereum address of the receiver of the funds
+     * @param amount - Amount of the funds to be transferred
+     * @param fee - Fee amount for paying the transaction
+     * @param nonce - Nonce value
+     * @param timeRange - Timerange of validity of the transcation
+     * @return - Unsigned transaction object
+     */
     public CompletableFuture<Transfer> transfer(String to, BigInteger amount, TransactionFee fee, Integer nonce, TimeRange timeRange) {
         final String tokenIdentifier = fee.getFeeToken();
 
@@ -143,14 +191,41 @@ public class TransactionBuildHelper {
         });
     }
 
+    /**
+     * Build transfer transaction (With default time range)
+     * 
+     * @param to - Ethereum address of the receiver of the funds
+     * @param amount - Amount of the funds to be transferred
+     * @param fee - Fee amount for paying the transaction
+     * @param nonce - Nonce value
+     * @return - Unsigned transaction object
+     */
     public CompletableFuture<Transfer> transfer(String to, BigInteger amount, TransactionFee fee, Integer nonce) {
         return transfer(to, amount, fee, nonce, null);
     }
 
+    /**
+     * Build transfer transaction (With default time range and load nonce from network)
+     * 
+     * @param to - Ethereum address of the receiver of the funds
+     * @param amount - Amount of the funds to be transferred
+     * @param fee - Fee amount for paying the transaction
+     * @return - Unsigned transaction object
+     */
     public CompletableFuture<Transfer> transfer(String to, BigInteger amount, TransactionFee fee) {
         return transfer(to, amount, fee, null, null);
     }
 
+    /**
+     * Build transfer transaction (With default time range and load nonce from network)
+     * This function will estimate the fee for the transaction
+     * 
+     * @param <T> - Token type
+     * @param to - Ethereum address of the receiver of the funds
+     * @param amount - Amount of the funds to be transferred
+     * @param tokenId - Fundible token id
+     * @return - Unsigned transaction object
+     */
     public <T extends TokenId> CompletableFuture<Transfer> transfer(String to, BigInteger amount, T tokenId) {
         TransactionFeeRequest feeRequest = TransactionFeeRequest.builder()
                 .transactionType(TransactionType.TRANSFER)
@@ -168,6 +243,16 @@ public class TransactionBuildHelper {
      * Withdraw transaction
      */
 
+    /**
+     * Build withdraw transaction
+     * 
+     * @param to - Ethereum address of the receiver of the funds
+     * @param amount - Amount of the funds to be withdrawn
+     * @param fee - Fee amount for paying the transaction
+     * @param nonce - Nonce value
+     * @param timeRange - Timerange of validity of the transcation
+     * @return - Unsigned transaction object
+     */
     public CompletableFuture<Withdraw> withdraw(String to, BigInteger amount, TransactionFee fee, Integer nonce, TimeRange timeRange) {
         final String tokenIdentifier = fee.getFeeToken();
 
@@ -187,14 +272,42 @@ public class TransactionBuildHelper {
         });
     }
 
+    /**
+     * Build withdraw transaction (With default time range)
+     * 
+     * @param to - Ethereum address of the receiver of the funds
+     * @param amount - Amount of the funds to be withdrawn
+     * @param fee - Fee amount for paying the transaction
+     * @param nonce - Nonce value
+     * @return - Unsigned transaction object
+     */
     public CompletableFuture<Withdraw> withdraw(String to, BigInteger amount, TransactionFee fee, Integer nonce) {
         return withdraw(to, amount, fee, nonce, null);
     }
 
+    /**
+     * Build withdraw transaction (With default time range and load nonce from network)
+     * 
+     * @param to - Ethereum address of the receiver of the funds
+     * @param amount - Amount of the funds to be withdrawn
+     * @param fee - Fee amount for paying the transaction
+     * @return - Unsigned transaction object
+     */
     public CompletableFuture<Withdraw> withdraw(String to, BigInteger amount, TransactionFee fee) {
         return withdraw(to, amount, fee, null, null);
     }
 
+    /**
+     * Build withdraw transaction (With default time range and load nonce from network)
+     * This function will estimate the fee for the transaction
+     * 
+     * @param <T> - Token type
+     * @param to - Ethereum address of the receiver of the funds
+     * @param amount - Amount of the funds to be transferred
+     * @param tokenId - Fundible token id
+     * @param fastProcessing - Mark the transaction should be executed as fast as possible
+     * @return - Unsigned transaction object
+     */
     public <T extends TokenId> CompletableFuture<Withdraw> withdraw(String to, BigInteger amount, T tokenId, boolean fastProcessing) {
         TransactionFeeRequest feeRequest = TransactionFeeRequest.builder()
                 .transactionType(fastProcessing ? TransactionType.FAST_WITHDRAW : TransactionType.WITHDRAW)
@@ -212,6 +325,15 @@ public class TransactionBuildHelper {
      * ForcedExit transaction
      */
 
+    /**
+     * Build forced exit transaction
+     * 
+     * @param to - Ethereum address of the receiver of the funds
+     * @param fee - Fee amount for paying the transaction
+     * @param nonce - Nonce value
+     * @param timeRange - Timerange of validity of the transcation
+     * @return - Unsigned transaction object
+     */
     public CompletableFuture<ForcedExit> forcedExit(String to, TransactionFee fee, Integer nonce, TimeRange timeRange) {
         final String tokenIdentifier = fee.getFeeToken();
 
@@ -229,14 +351,38 @@ public class TransactionBuildHelper {
         });
     }
 
+    /**
+     * Build forced exit transaction (With default time range)
+     * 
+     * @param to - Ethereum address of the receiver of the funds
+     * @param fee - Fee amount for paying the transaction
+     * @param nonce - Nonce value
+     * @return - Unsigned transaction object
+     */
     public CompletableFuture<ForcedExit> forcedExit(String to, TransactionFee fee, Integer nonce) {
         return forcedExit(to, fee, nonce, null);
     }
 
+    /**
+     * Build forced exit transaction (With default time range and load nonce from network)
+     * 
+     * @param to - Ethereum address of the receiver of the funds
+     * @param fee - Fee amount for paying the transaction
+     * @return - Unsigned transaction object
+     */
     public CompletableFuture<ForcedExit> forcedExit(String to, TransactionFee fee) {
         return forcedExit(to, fee, null, null);
     }
 
+    /**
+     * Build forced exit transaction (With default time range and load nonce from network)
+     * This function will estimate the fee for the transaction
+     * 
+     * @param <T> - Token type
+     * @param to - Ethereum address of the receiver of the funds
+     * @param tokenId - Fundible token id
+     * @return - Unsigned transaction object
+     */
     public <T extends TokenId> CompletableFuture<ForcedExit> forcedExit(String to, T tokenId) {
         TransactionFeeRequest feeRequest = TransactionFeeRequest.builder()
                 .transactionType(TransactionType.FORCED_EXIT)
@@ -254,6 +400,15 @@ public class TransactionBuildHelper {
      * MintNFT transaction
      */
 
+    /**
+     * Build mint NFT transaction
+     * 
+     * @param recipient - Ethereum address of the receiver of the NFT
+     * @param contentHash - Hash for creation Non-fundible token
+     * @param fee - Fee amount for paying the transaction
+     * @param nonce - Nonce value
+     * @return - Unsigned transaction object
+     */
     public CompletableFuture<MintNFT> mintNFT(String recipient, String contentHash, TransactionFee fee, Integer nonce) {
         final String tokenIdentifier = fee.getFeeToken();
 
@@ -272,10 +427,28 @@ public class TransactionBuildHelper {
         });
     }
 
+    /**
+     * Build mint NFT transaction (Load nonce from network)
+     * 
+     * @param recipient - Ethereum address of the receiver of the NFT
+     * @param contentHash - Hash for creation Non-fundible token
+     * @param fee - Fee amount for paying the transaction
+     * @return - Unsigned transaction object
+     */
     public CompletableFuture<MintNFT> mintNFT(String recipient, String contentHash, TransactionFee fee) {
         return mintNFT(recipient, contentHash, fee, null);
     }
 
+    /**
+     * Build mint NFT transaction (Load nonce from network)
+     * This function will estimate the fee for the transaction
+     * 
+     * @param <T> - Token type
+     * @param recipient - Ethereum address of the receiver of the NFT
+     * @param contentHash - Hash for creation Non-fundible token
+     * @param tokenId - Fundible token id
+     * @return - Unsigned transaction object
+     */
     public <T extends TokenId> CompletableFuture<MintNFT> mintNFT(String recipient, String contentHash, T tokenId) {
         TransactionFeeRequest feeRequest = TransactionFeeRequest.builder()
                 .transactionType(TransactionType.MINT_NFT)
@@ -293,6 +466,16 @@ public class TransactionBuildHelper {
      * WithdrawNFT transaction
      */
 
+    /**
+     * Build withdraw NFT transaction
+     * 
+     * @param to - Ethereum address of the receiver of the NFT
+     * @param token - Existing Non-fundible token
+     * @param fee - Fee amount for paying the transaction
+     * @param nonce - Nonce value
+     * @param timeRange - Timerange of validity of the transcation
+     * @return - Unsigned transaction object
+     */
     public CompletableFuture<WithdrawNFT> withdrawNFT(String to, NFT token, TransactionFee fee, Integer nonce, TimeRange timeRange) {
         final String tokenIdentifier = fee.getFeeToken();
 
@@ -312,14 +495,42 @@ public class TransactionBuildHelper {
         });
     }
 
+    /**
+     * Build withdraw NFT transaction (With default time range)
+     * 
+     * @param to - Ethereum address of the receiver of the NFT
+     * @param token - Existing Non-fundible token
+     * @param fee - Fee amount for paying the transaction
+     * @param nonce - Nonce value
+     * @return - Unsigned transaction object
+     */
     public CompletableFuture<WithdrawNFT> withdrawNFT(String to, NFT token, TransactionFee fee, Integer nonce) {
         return withdrawNFT(to, token, fee, nonce, null);
     }
 
+    /**
+     * Build withdraw NFT transaction (With default time range and load nonce from network)
+     * 
+     * @param to - Ethereum address of the receiver of the NFT
+     * @param token - Existing Non-fundible token
+     * @param fee - Fee amount for paying the transaction
+     * @return - Unsigned transaction object
+     */
     public CompletableFuture<WithdrawNFT> withdrawNFT(String to, NFT token, TransactionFee fee) {
         return withdrawNFT(to, token, fee, null, null);
     }
 
+    /**
+     * Build withdraw NFT transaction (With default time range and load nonce from network)
+     * This function will estimate the fee for the transaction
+     * 
+     * @param <T> - Token type
+     * @param to - Ethereum address of the receiver of the NFT
+     * @param token - Existing Non-fundible token
+     * @param tokenId - Fundible token id
+     * @param fastProcessing - Mark the transaction should be executed as fast as possible
+     * @return - Unsigned transaction object
+     */
     public <T extends TokenId> CompletableFuture<WithdrawNFT> withdrawNFT(String to, NFT token, T tokenId, boolean fastProcessing) {
         TransactionFeeRequest feeRequest = TransactionFeeRequest.builder()
                 .transactionType(fastProcessing ? TransactionType.FAST_WITHDRAW_NFT : TransactionType.WITHDRAW_NFT)
@@ -337,6 +548,16 @@ public class TransactionBuildHelper {
      * TransferNFT transaction
      */
 
+    /**
+     * Build transfer NFT transaction
+     * 
+     * @param to - Ethereum address of the receiver of the NFT
+     * @param token - Existing Non-fundible token
+     * @param fee - Fee amount for paying the transaction
+     * @param nonce - Nonce value
+     * @param timeRange - Timerange of validity of the transcation
+     * @return - Unsigned transaction objects
+     */
     public CompletableFuture<Tuple2<Transfer, Transfer>> transferNFT(String to, NFT token, TransactionFee fee, Integer nonce, TimeRange timeRange) {
         final String tokenIdentifier = fee.getFeeToken();
 
@@ -374,14 +595,41 @@ public class TransactionBuildHelper {
         });
     }
 
+    /**
+     * Build transfer NFT transaction (With default time range)
+     * 
+     * @param to - Ethereum address of the receiver of the NFT
+     * @param token - Existing Non-fundible token
+     * @param fee - Fee amount for paying the transaction
+     * @param nonce - Nonce value
+     * @return - Unsigned transaction objects
+     */
     public CompletableFuture<Tuple2<Transfer, Transfer>> transferNFT(String to, NFT token, TransactionFee fee, Integer nonce) {
         return transferNFT(to, token, fee, nonce, null);
     }
 
+    /**
+     * Build transfer NFT transaction (With default time range and load nonce from network)
+     * 
+     * @param to - Ethereum address of the receiver of the NFT
+     * @param token - Existing Non-fundible token
+     * @param fee - Fee amount for paying the transaction
+     * @return - Unsigned transaction objects
+     */
     public CompletableFuture<Tuple2<Transfer, Transfer>> transferNFT(String to, NFT token, TransactionFee fee) {
         return transferNFT(to, token, fee, null, null);
     }
 
+    /**
+     * Build transfer NFT transaction (With default time range and load nonce from network)
+     * This function will estimate the fee for the transaction
+     * 
+     * @param <T> - Token type
+     * @param to - Ethereum address of the receiver of the NFT
+     * @param token - Existing Non-fundible token
+     * @param tokenId - Fundible token id
+     * @return - Unsigned transaction objects
+     */
     public <T extends TokenId> CompletableFuture<Tuple2<Transfer, Transfer>> transferNFT(String to, NFT token, T tokenId) {
         TransactionFeeBatchRequest feeRequest = TransactionFeeBatchRequest.builder()
                 .transactionType(Pair.of(TransactionType.TRANSFER, to))
@@ -399,6 +647,17 @@ public class TransactionBuildHelper {
      * Swap transaction
      */
 
+    /**
+     * Build swap transaction
+     * 
+     * @param order1 - Signed order
+     * @param order2 - Signed order
+     * @param amount1 - Amount funds to be swapped
+     * @param amount2 - Amount funds to be swapped
+     * @param fee - Fee amount for paying the transaction
+     * @param nonce - Nonce value
+     * @return - Unsigned transaction object
+     */
     public CompletableFuture<Swap> swap(Order order1, Order order2, BigInteger amount1, BigInteger amount2, TransactionFee fee, Integer nonce) {
         final String tokenIdentifier = fee.getFeeToken();
 
@@ -416,10 +675,32 @@ public class TransactionBuildHelper {
         });
     }
 
+    /**
+     * Build swap transaction (Load nonce from network)
+     * 
+     * @param order1 - Signed order
+     * @param order2 - Signed order
+     * @param amount1 - Amount funds to be swapped
+     * @param amount2 - Amount funds to be swapped
+     * @param fee - Fee amount for paying the transaction
+     * @return - Unsigned transaction object
+     */
     public CompletableFuture<Swap> swap(Order order1, Order order2, BigInteger amount1, BigInteger amount2, TransactionFee fee) {
         return swap(order1, order2, amount1, amount2, fee, null);
     }
 
+    /**
+     * Build swap transaction (Load nonce from network)
+     * This function will estimate the fee for the transaction
+     * 
+     * @param <T> - Token type
+     * @param order1 - Signed order
+     * @param order2 - Signed order
+     * @param amount1 - Amount funds to be swapped
+     * @param amount2 - Amount funds to be swapped
+     * @param tokenId - Fundible token id
+     * @return - Unsigned transaction object
+     */
     public <T extends TokenId> CompletableFuture<Swap> swap(Order order1, Order order2, BigInteger amount1, BigInteger amount2, T tokenId) {
         TransactionFeeBatchRequest feeRequest = TransactionFeeBatchRequest.builder()
                 .transactionType(Pair.of(TransactionType.SWAP, address.get()))
@@ -436,6 +717,18 @@ public class TransactionBuildHelper {
      * Order transaction
      */
 
+    /**
+     * Build order component of the swap transaction
+     * 
+     * @param recipient - Ethereum address of the receiver of the funds
+     * @param sell - Token to sell
+     * @param buy - Token to buy
+     * @param ratio - Swap ratio
+     * @param amount - Amount to swap
+     * @param nonce - Nonce value
+     * @param timeRange - Timerange of validity of the order
+     * @return - Unsigned order object
+     */
     public CompletableFuture<Order> order(String recipient, Token sell, Token buy, Tuple2<BigInteger, BigInteger> ratio, BigInteger amount, Integer nonce, TimeRange timeRange) {
         return CompletableFuture.supplyAsync(() -> {
             Order order = Order.builder()
@@ -452,10 +745,31 @@ public class TransactionBuildHelper {
         });
     }
 
+    /**
+     * Build order component of the swap transaction (With default time range)
+     * 
+     * @param recipient - Ethereum address of the receiver of the funds
+     * @param sell - Token to sell
+     * @param buy - Token to buy
+     * @param ratio - Swap ratio
+     * @param amount - Amount to swap
+     * @param nonce - Nonce value
+     * @return - Unsigned order object
+     */
     public CompletableFuture<Order> order(String recipient, Token sell, Token buy, Tuple2<BigInteger, BigInteger> ratio, BigInteger amount, Integer nonce) {
         return order(recipient, sell, buy, ratio, amount, nonce, null);
     }
 
+    /**
+     * Build order component of the swap transaction (With default time range and load nonce from network)
+     * 
+     * @param recipient - Ethereum address of the receiver of the funds
+     * @param sell - Token to sell
+     * @param buy - Token to buy
+     * @param ratio - Swap ratio
+     * @param amount - Amount to swap
+     * @return - Unsigned order object
+     */
     public CompletableFuture<Order> order(String recipient, Token sell, Token buy, Tuple2<BigInteger, BigInteger> ratio, BigInteger amount) {
         return order(recipient, sell, buy, ratio, amount, null, null);
     }
@@ -464,14 +778,44 @@ public class TransactionBuildHelper {
      * Limit Order transaction
      */
 
+    /**
+     * Build limit order component of the swap transaction
+     * 
+     * @param recipient - Ethereum address of the receiver of the funds
+     * @param sell - Token to sell
+     * @param buy - Token to buy
+     * @param ratio - Swap ratio
+     * @param nonce - Nonce value
+     * @param timeRange - Timerange of validity of the order
+     * @return - Unsigned order object
+     */
     public CompletableFuture<Order> limitOrder(String recipient, Token sell, Token buy, Tuple2<BigInteger, BigInteger> ratio, Integer nonce, TimeRange timeRange) {
         return order(recipient, sell, buy, ratio, BigInteger.ZERO, nonce, timeRange);
     }
 
+    /**
+     * Build order component of the swap transaction (With default time range)
+     * 
+     * @param recipient - Ethereum address of the receiver of the funds
+     * @param sell - Token to sell
+     * @param buy - Token to buy
+     * @param ratio - Swap ratio
+     * @param nonce - Nonce value
+     * @return - Unsigned order object
+     */
     public CompletableFuture<Order> limitOrder(String recipient, Token sell, Token buy, Tuple2<BigInteger, BigInteger> ratio, Integer nonce) {
         return limitOrder(recipient, sell, buy, ratio, nonce, null);
     }
 
+    /**
+     * Build order component of the swap transaction (With default time range and load nonce from network)
+     * 
+     * @param recipient - Ethereum address of the receiver of the funds
+     * @param sell - Token to sell
+     * @param buy - Token to buy
+     * @param ratio - Swap ratio
+     * @return - Unsigned order object
+     */
     public CompletableFuture<Order> limitOrder(String recipient, Token sell, Token buy, Tuple2<BigInteger, BigInteger> ratio) {
         return limitOrder(recipient, sell, buy, ratio, null, null);
     }
