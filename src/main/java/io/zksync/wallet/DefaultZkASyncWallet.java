@@ -20,7 +20,7 @@ import io.zksync.domain.fee.TransactionFee;
 import io.zksync.domain.state.AccountState;
 import io.zksync.domain.swap.Order;
 import io.zksync.domain.token.NFT;
-import io.zksync.domain.token.Token;
+import io.zksync.domain.token.TokenId;
 import io.zksync.domain.token.Tokens;
 import io.zksync.domain.transaction.ChangePubKey;
 import io.zksync.domain.transaction.Transfer;
@@ -167,7 +167,7 @@ public class DefaultZkASyncWallet<A extends ChangePubKeyVariant, S extends EthSi
     }
 
     @Override
-    public CompletableFuture<Order> buildSignedOrder(String recipient, Token sell, Token buy,
+    public <T extends TokenId> CompletableFuture<Order> buildSignedOrder(String recipient, T sell, T buy,
             Tuple2<BigInteger, BigInteger> ratio, BigInteger amount, Integer nonce, TimeRange timeRange) {
         return this.helper.order(recipient, sell, buy, ratio, amount, nonce, timeRange)
                 .thenApply(order -> {
@@ -179,7 +179,7 @@ public class DefaultZkASyncWallet<A extends ChangePubKeyVariant, S extends EthSi
     }
 
     @Override
-    public CompletableFuture<Order> buildSignedLimitOrder(String recipient, Token sell, Token buy,
+    public <T extends TokenId> CompletableFuture<Order> buildSignedLimitOrder(String recipient, T sell, T buy,
             Tuple2<BigInteger, BigInteger> ratio, Integer nonce, TimeRange timeRange) {
         return this.helper.limitOrder(recipient, sell, buy, ratio, nonce, timeRange)
                 .thenApply(order -> {

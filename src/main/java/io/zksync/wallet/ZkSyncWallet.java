@@ -6,7 +6,7 @@ import io.zksync.domain.fee.TransactionFee;
 import io.zksync.domain.state.AccountState;
 import io.zksync.domain.swap.Order;
 import io.zksync.domain.token.NFT;
-import io.zksync.domain.token.Token;
+import io.zksync.domain.token.TokenId;
 import io.zksync.domain.token.Tokens;
 import io.zksync.domain.transaction.ZkSyncTransaction;
 import io.zksync.ethereum.EthereumProvider;
@@ -149,7 +149,7 @@ public interface ZkSyncWallet {
      * @param timeRange - Timerange of validity of the order
      * @return - Signed order object
      */
-    Order buildSignedOrder(@NotNull String recipient, @NotNull Token sell, @NotNull Token buy, @NotNull Tuple2<BigInteger, BigInteger> ratio, @NotNull BigInteger amount, @Nullable Integer nonce, @Nullable TimeRange timeRange);
+    <T extends TokenId> Order buildSignedOrder(@NotNull String recipient, @NotNull T sell, @NotNull T buy, @NotNull Tuple2<BigInteger, BigInteger> ratio, @NotNull BigInteger amount, @Nullable Integer nonce, @Nullable TimeRange timeRange);
 
     /**
      * Build swap limit order
@@ -162,7 +162,7 @@ public interface ZkSyncWallet {
      * @param timeRange - Timerange of validity of the order
      * @return - Signed order object
      */
-    Order buildSignedLimitOrder(@NotNull String recipient, @NotNull Token sell, @NotNull Token buy, @NotNull Tuple2<BigInteger, BigInteger> ratio, @Nullable Integer nonce, @Nullable TimeRange timeRange);
+    <T extends TokenId> Order buildSignedLimitOrder(@NotNull String recipient, @NotNull T sell, @NotNull T buy, @NotNull Tuple2<BigInteger, BigInteger> ratio, @Nullable Integer nonce, @Nullable TimeRange timeRange);
 
     /**
      * Submit signed transaction to ZkSync network

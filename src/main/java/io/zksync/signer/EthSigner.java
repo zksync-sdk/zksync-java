@@ -10,6 +10,7 @@ import org.web3j.tx.TransactionManager;
 import io.zksync.domain.auth.ChangePubKeyVariant;
 import io.zksync.domain.swap.Order;
 import io.zksync.domain.token.Token;
+import io.zksync.domain.token.TokenId;
 import io.zksync.domain.transaction.ChangePubKey;
 import io.zksync.domain.transaction.ZkSyncTransaction;
 
@@ -51,7 +52,7 @@ public interface EthSigner<A extends ChangePubKeyVariant> {
      * @param tokenBuy - Token object supported by ZkSync
      * @return Signature object
      */
-    CompletableFuture<EthSignature> signOrder(Order order, Token tokenSell, Token tokenBuy);
+    <T extends TokenId> CompletableFuture<EthSignature> signOrder(Order order, T tokenSell, T tokenBuy);
 
     /**
      * Sign batch of `ZkSync` type operation messages

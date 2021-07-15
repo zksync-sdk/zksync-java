@@ -8,6 +8,7 @@ import io.zksync.domain.state.AccountState;
 import io.zksync.domain.swap.Order;
 import io.zksync.domain.token.NFT;
 import io.zksync.domain.token.Token;
+import io.zksync.domain.token.TokenId;
 import io.zksync.domain.token.Tokens;
 import io.zksync.domain.transaction.*;
 import io.zksync.ethereum.DefaultEthereumProvider;
@@ -185,7 +186,7 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
 
     @Override
     @SneakyThrows
-    public Order buildSignedOrder(String recipient, Token sell, Token buy, Tuple2<BigInteger, BigInteger> ratio, BigInteger amount, Integer nonce, TimeRange timeRange) {
+    public <T extends TokenId> Order buildSignedOrder(String recipient, T sell, T buy, Tuple2<BigInteger, BigInteger> ratio, BigInteger amount, Integer nonce, TimeRange timeRange) {
         final Integer nonceToUse = nonce == null ? getNonce() : nonce;
 
         Order order = Order.builder()
@@ -206,7 +207,7 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
 
     @Override
     @SneakyThrows
-    public Order buildSignedLimitOrder(String recipient, Token sell, Token buy, Tuple2<BigInteger, BigInteger> ratio,
+    public <T extends TokenId> Order buildSignedLimitOrder(String recipient, T sell, T buy, Tuple2<BigInteger, BigInteger> ratio,
             Integer nonce, TimeRange timeRange) {
         return this.buildSignedOrder(recipient, sell, buy, ratio, BigInteger.ZERO, nonce, timeRange);
     }

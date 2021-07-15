@@ -114,7 +114,7 @@ public class DefaultEthSigner implements EthSigner<ChangePubKeyECDSA> {
     }
 
     @Override
-    public CompletableFuture<EthSignature> signOrder(Order order, Token tokenSell, Token tokenBuy) {
+    public <T extends TokenId> CompletableFuture<EthSignature> signOrder(Order order, T tokenSell, T tokenBuy) {
         String message = getOrderMessagePart(order.getRecipientAddress(), order.getAmount(), tokenSell, tokenBuy, order.getRatio(), order.getNonce());
 
         return signMessage(message.getBytes());

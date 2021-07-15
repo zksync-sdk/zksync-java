@@ -100,7 +100,7 @@ public class SigningUtils {
         return result;
     }
 
-    public static String getOrderMessagePart(String recipient, BigInteger amount, Token tokenSell, Token tokenBuy, Tuple2<BigInteger, BigInteger> ratio, Integer nonce) {
+    public static <T extends TokenId> String getOrderMessagePart(String recipient, BigInteger amount, T tokenSell, T tokenBuy, Tuple2<BigInteger, BigInteger> ratio, Integer nonce) {
         String result;
         if (amount.compareTo(BigInteger.ZERO) == 0) {
             result = String.format("Limit order for %s -> %s", tokenSell.getSymbol(), tokenBuy.getSymbol());

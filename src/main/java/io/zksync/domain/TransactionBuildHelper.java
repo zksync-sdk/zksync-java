@@ -729,7 +729,7 @@ public class TransactionBuildHelper {
      * @param timeRange - Timerange of validity of the order
      * @return - Unsigned order object
      */
-    public CompletableFuture<Order> order(String recipient, Token sell, Token buy, Tuple2<BigInteger, BigInteger> ratio, BigInteger amount, Integer nonce, TimeRange timeRange) {
+    public <T extends TokenId> CompletableFuture<Order> order(String recipient, T sell, T buy, Tuple2<BigInteger, BigInteger> ratio, BigInteger amount, Integer nonce, TimeRange timeRange) {
         return CompletableFuture.supplyAsync(() -> {
             Order order = Order.builder()
                 .accountId(accountId.get().join())
@@ -756,7 +756,7 @@ public class TransactionBuildHelper {
      * @param nonce - Nonce value
      * @return - Unsigned order object
      */
-    public CompletableFuture<Order> order(String recipient, Token sell, Token buy, Tuple2<BigInteger, BigInteger> ratio, BigInteger amount, Integer nonce) {
+    public <T extends TokenId> CompletableFuture<Order> order(String recipient, T sell, T buy, Tuple2<BigInteger, BigInteger> ratio, BigInteger amount, Integer nonce) {
         return order(recipient, sell, buy, ratio, amount, nonce, null);
     }
 
@@ -770,7 +770,7 @@ public class TransactionBuildHelper {
      * @param amount - Amount to swap
      * @return - Unsigned order object
      */
-    public CompletableFuture<Order> order(String recipient, Token sell, Token buy, Tuple2<BigInteger, BigInteger> ratio, BigInteger amount) {
+    public <T extends TokenId> CompletableFuture<Order> order(String recipient, T sell, T buy, Tuple2<BigInteger, BigInteger> ratio, BigInteger amount) {
         return order(recipient, sell, buy, ratio, amount, null, null);
     }
 
@@ -789,7 +789,7 @@ public class TransactionBuildHelper {
      * @param timeRange - Timerange of validity of the order
      * @return - Unsigned order object
      */
-    public CompletableFuture<Order> limitOrder(String recipient, Token sell, Token buy, Tuple2<BigInteger, BigInteger> ratio, Integer nonce, TimeRange timeRange) {
+    public <T extends TokenId> CompletableFuture<Order> limitOrder(String recipient, T sell, T buy, Tuple2<BigInteger, BigInteger> ratio, Integer nonce, TimeRange timeRange) {
         return order(recipient, sell, buy, ratio, BigInteger.ZERO, nonce, timeRange);
     }
 
@@ -803,7 +803,7 @@ public class TransactionBuildHelper {
      * @param nonce - Nonce value
      * @return - Unsigned order object
      */
-    public CompletableFuture<Order> limitOrder(String recipient, Token sell, Token buy, Tuple2<BigInteger, BigInteger> ratio, Integer nonce) {
+    public <T extends TokenId> CompletableFuture<Order> limitOrder(String recipient, T sell, T buy, Tuple2<BigInteger, BigInteger> ratio, Integer nonce) {
         return limitOrder(recipient, sell, buy, ratio, nonce, null);
     }
 
@@ -816,7 +816,7 @@ public class TransactionBuildHelper {
      * @param ratio - Swap ratio
      * @return - Unsigned order object
      */
-    public CompletableFuture<Order> limitOrder(String recipient, Token sell, Token buy, Tuple2<BigInteger, BigInteger> ratio) {
+    public <T extends TokenId> CompletableFuture<Order> limitOrder(String recipient, T sell, T buy, Tuple2<BigInteger, BigInteger> ratio) {
         return limitOrder(recipient, sell, buy, ratio, null, null);
     }
     
