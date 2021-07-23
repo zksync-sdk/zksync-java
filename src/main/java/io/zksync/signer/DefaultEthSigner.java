@@ -6,9 +6,14 @@ import io.zksync.domain.token.Token;
 import io.zksync.domain.token.TokenId;
 import io.zksync.domain.transaction.*;
 import io.zksync.ethereum.transaction.NoOpTransactionManager;
+import io.zksync.ethereum.wrappers.IEIP1271;
 import io.zksync.exception.ZkSyncException;
+
+import org.web3j.abi.datatypes.Address;
 import org.web3j.crypto.Bip32ECKeyPair;
 import org.web3j.crypto.Credentials;
+import org.web3j.crypto.ECDSASignature;
+import org.web3j.crypto.Hash;
 import org.web3j.crypto.MnemonicUtils;
 import org.web3j.crypto.Sign;
 import org.web3j.protocol.Web3j;
@@ -31,10 +36,18 @@ public class DefaultEthSigner implements EthSigner<ChangePubKeyECDSA> {
 
     private final Credentials credentials;
     private final TransactionManager transactionManager;
+    private final String address;
 
     private DefaultEthSigner(TransactionManager transactionManager, Credentials credentials) {
         this.credentials = credentials;
         this.transactionManager = transactionManager;
+        this.address = credentials.getAddress();
+    }
+
+    private DefaultEthSigner(TransactionManager transactionManager, Credentials credentials, String address) {
+        this.credentials = credentials;
+        this.transactionManager = transactionManager;
+        this.address = address;
     }
 
     public static DefaultEthSigner fromMnemonic(String mnemonic) {
@@ -68,7 +81,7 @@ public class DefaultEthSigner implements EthSigner<ChangePubKeyECDSA> {
     }
 
     public String getAddress() {
-        return transactionManager.getFromAddress();
+        return transactionManager.getFromAddress(); // TODO: Decide what address should be returned
     }
 
     public TransactionManager getTransactionManager() {
@@ -171,7 +184,8 @@ public class DefaultEthSigner implements EthSigner<ChangePubKeyECDSA> {
 
         final String signature = Numeric.toHexString(output.toByteArray());
 
-        return CompletableFuture.completedFuture(EthSignature.builder().signature(signature).type(EthSignature.SignatureType.EthereumSignature).build());
+        return this.getEthSignatureType(output.toByteArray(), message, addPrefix)
+            .thenApply(type -> EthSignature.builder().signature(signature).type(type).build());
     }
 
     public CompletableFuture<Boolean> verifySignature(EthSignature signature, byte[] message) throws SignatureException {
@@ -180,15 +194,50 @@ public class DefaultEthSigner implements EthSigner<ChangePubKeyECDSA> {
 
     public CompletableFuture<Boolean> verifySignature(EthSignature signature, byte[] message, boolean prefixed) throws SignatureException {
         byte[] sig = Numeric.hexStringToByteArray(signature.getSignature());
-        Sign.SignatureData signatureData = new Sign.SignatureData(
-            Arrays.copyOfRange(sig, 64, 65),
-            Arrays.copyOfRange(sig, 0, 32),
-            Arrays.copyOfRange(sig, 32, 64)
+        return this.getEthSignatureType(sig, message, prefixed)
+            .thenApply(ignored -> true)
+            .exceptionally(ignored -> false);
+    }
+
+    private CompletableFuture<EthSignature.SignatureType> getEthSignatureType(byte[] signature, byte[] message, boolean prefixed) {
+        byte[] messageHash = prefixed ? EthSigner.getEthereumMessageHash(message) : Hash.sha3(message);
+
+        Address address = DefaultEthSigner.ecrecover(signature, messageHash);
+
+        if (address.getValue().equalsIgnoreCase(this.address)) {
+            return CompletableFuture.completedFuture(EthSignature.SignatureType.EthereumSignature);
+        } else {
+            IEIP1271 validator = IEIP1271.load(this.address, null, this.getTransactionManager(), null);
+            return validator.isValidSignature(messageHash, signature).sendAsync()
+                .thenApply(result -> {
+                    if (Arrays.equals(result, EIP1271_SUCCESS_VALUE)) {
+                        return EthSignature.SignatureType.EIP1271Signature;
+                    } else {
+                        throw new ZkSyncException("Invalid signature");
+                    }
+                });
+        }
+        
+    }
+
+
+    private static Address ecrecover(byte[] signature, byte[] hash) {
+        ECDSASignature sig = new ECDSASignature(
+            Numeric.toBigInt(Arrays.copyOfRange(signature, 0, 32)),
+            Numeric.toBigInt(Arrays.copyOfRange(signature, 32, 64))
         );
-        BigInteger publicKey = prefixed ?
-            Sign.signedPrefixedMessageToKey(message, signatureData) :
-            Sign.signedMessageToKey(message, signatureData);
-        return CompletableFuture.completedFuture(credentials.getEcKeyPair().getPublicKey().equals(publicKey));
+
+        byte v = signature[65];
+
+        int recId;
+        if (v > 3) {
+            recId = v - 27;
+        } else {
+            recId = v;
+        }
+
+        BigInteger recovered = Sign.recoverFromSignature(recId, sig, hash);
+        return new Address(recovered);
     }
 
     private static Credentials generateCredentialsFromMnemonic(String mnemonic, int accountIndex) {
