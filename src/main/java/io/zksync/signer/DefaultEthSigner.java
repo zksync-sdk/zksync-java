@@ -9,11 +9,11 @@ import io.zksync.ethereum.transaction.NoOpTransactionManager;
 import io.zksync.ethereum.wrappers.IEIP1271;
 import io.zksync.exception.ZkSyncException;
 
-import org.web3j.abi.datatypes.Address;
 import org.web3j.crypto.Bip32ECKeyPair;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECDSASignature;
 import org.web3j.crypto.Hash;
+import org.web3j.crypto.Keys;
 import org.web3j.crypto.MnemonicUtils;
 import org.web3j.crypto.Sign;
 import org.web3j.protocol.Web3j;
@@ -81,7 +81,7 @@ public class DefaultEthSigner implements EthSigner<ChangePubKeyECDSA> {
     }
 
     public String getAddress() {
-        return transactionManager.getFromAddress(); // TODO: Decide what address should be returned
+        return transactionManager.getFromAddress(); // TODO: Decide which address should be returned
     }
 
     public TransactionManager getTransactionManager() {
@@ -202,9 +202,9 @@ public class DefaultEthSigner implements EthSigner<ChangePubKeyECDSA> {
     private CompletableFuture<EthSignature.SignatureType> getEthSignatureType(byte[] signature, byte[] message, boolean prefixed) {
         byte[] messageHash = prefixed ? EthSigner.getEthereumMessageHash(message) : Hash.sha3(message);
 
-        Address address = DefaultEthSigner.ecrecover(signature, messageHash);
+        String address = DefaultEthSigner.ecrecover(signature, messageHash);
 
-        if (address.getValue().equalsIgnoreCase(this.address)) {
+        if (address.equalsIgnoreCase(this.address)) {
             return CompletableFuture.completedFuture(EthSignature.SignatureType.EthereumSignature);
         } else {
             IEIP1271 validator = IEIP1271.load(this.address, null, this.getTransactionManager(), null);
@@ -220,24 +220,23 @@ public class DefaultEthSigner implements EthSigner<ChangePubKeyECDSA> {
         
     }
 
-
-    private static Address ecrecover(byte[] signature, byte[] hash) {
+    private static String ecrecover(byte[] signature, byte[] hash) {
         ECDSASignature sig = new ECDSASignature(
             Numeric.toBigInt(Arrays.copyOfRange(signature, 0, 32)),
             Numeric.toBigInt(Arrays.copyOfRange(signature, 32, 64))
         );
 
-        byte v = signature[65];
+        byte v = signature[64];
 
         int recId;
-        if (v > 3) {
+        if (v >= 3) {
             recId = v - 27;
         } else {
             recId = v;
         }
 
         BigInteger recovered = Sign.recoverFromSignature(recId, sig, hash);
-        return new Address(recovered);
+        return "0x" + Keys.getAddress(recovered);
     }
 
     private static Credentials generateCredentialsFromMnemonic(String mnemonic, int accountIndex) {
