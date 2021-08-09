@@ -80,8 +80,23 @@ public class DefaultEthSigner implements EthSigner<ChangePubKeyECDSA> {
         return new DefaultEthSigner(new RawTransactionManager(web3j, credentials), credentials);
     }
 
+    public static DefaultEthSigner fromMnemonicEIP1271(Web3j web3j, String mnemonic, String contractAddress) {
+        Credentials credentials = generateCredentialsFromMnemonic(mnemonic, 0);
+        return new DefaultEthSigner(new RawTransactionManager(web3j, credentials), credentials, contractAddress);
+    }
+
+    public static DefaultEthSigner fromMnemonicEIP1271(Web3j web3j, String mnemonic, int accountIndex, String contractAddress) {
+        Credentials credentials = generateCredentialsFromMnemonic(mnemonic, accountIndex);
+        return new DefaultEthSigner(new RawTransactionManager(web3j, credentials), credentials, contractAddress);
+    }
+
+    public static DefaultEthSigner fromRawPrivateKeyEIP1271(Web3j web3j, String rawPrivateKey, String contractAddress) {
+        Credentials credentials = Credentials.create(rawPrivateKey);
+        return new DefaultEthSigner(new RawTransactionManager(web3j, credentials), credentials, contractAddress);
+    }
+
     public String getAddress() {
-        return transactionManager.getFromAddress(); // TODO: Decide which address should be returned
+        return this.address;
     }
 
     public TransactionManager getTransactionManager() {
