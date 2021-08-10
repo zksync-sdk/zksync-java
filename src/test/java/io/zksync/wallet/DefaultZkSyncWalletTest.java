@@ -4,10 +4,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.tuples.generated.Tuple2;
+import org.web3j.utils.Numeric;
 
 import io.zksync.domain.ChainId;
 import io.zksync.domain.Signature;
 import io.zksync.domain.TimeRange;
+import io.zksync.domain.auth.ChangePubKeyCREATE2;
 import io.zksync.domain.auth.ChangePubKeyOnchain;
 import io.zksync.domain.fee.TransactionFee;
 import io.zksync.domain.state.AccountState;
@@ -27,6 +29,7 @@ import io.zksync.domain.transaction.WithdrawNFT;
 import io.zksync.domain.transaction.Swap;
 import io.zksync.provider.Provider;
 import io.zksync.signer.EthSignature;
+import io.zksync.signer.Create2EthSigner;
 import io.zksync.signer.DefaultEthSigner;
 import io.zksync.signer.ZkSigner;
 import io.zksync.signer.EthSignature.SignatureType;
@@ -68,6 +71,26 @@ public class DefaultZkSyncWalletTest {
                 .thenReturn("success:hash");
 
         String response = wallet.setSigningKey(defaultTransactionFee(1000000000), 13, true, new TimeRange(0, 4294967295L));
+
+        assertNotNull(response);
+        assertEquals(response, "success:hash");
+    }
+
+    @Test
+    public void testCreate2Auth() {
+        Provider provider = mock(Provider.class);
+        when(provider.getState(anyString())).thenReturn(defaultAccountState(55));
+        Token token = defaultToken();
+
+        when(provider.getTokens()).thenReturn(new Tokens(Collections.singletonMap(token.getAddress(), token)));
+        when(provider.submitTx(defaultZkSyncTransaction_ChangePubKey_Create2(), null, false))
+                .thenReturn("success:hash");
+
+        ChangePubKeyCREATE2 create2Data = new ChangePubKeyCREATE2(Numeric.toHexStringWithPrefixZeroPadded(BigInteger.ZERO, 40), Numeric.toHexStringWithPrefixZeroPadded(BigInteger.ZERO, 64), Numeric.toHexStringWithPrefixZeroPadded(BigInteger.ZERO, 64));
+        Create2EthSigner ethSigner = Create2EthSigner.fromData(zkSigner, create2Data);
+        ZkSyncWallet wallet = ZkSyncWallet.build(ethSigner, zkSigner, provider);
+
+        String response = wallet.setSigningKey(defaultTransactionFee(1000000000), 13, false, new TimeRange(0, 4294967295L));
 
         assertNotNull(response);
         assertEquals(response, "success:hash");
@@ -263,6 +286,24 @@ public class DefaultZkSyncWalletTest {
                 .signature("85782959384c1728192b0fe9466a4273b6d0e78e913eea894b780e0236fc4c9d673d3833e895bce992fc113a4d16bba47ef73fed9c4fca2af09ed06cd6885802")
                 .build(),
             new ChangePubKeyOnchain(),
+            new TimeRange(0, 4294967295L)
+        );
+        return tx;
+    }
+
+    private ChangePubKey<ChangePubKeyCREATE2> defaultZkSyncTransaction_ChangePubKey_Create2() {
+        ChangePubKey<ChangePubKeyCREATE2> tx = new ChangePubKey<>(
+            55,
+            "0x880296a3a63ef5a9a06d962cbd204b8b4a828203",
+            "sync:18e8446d7748f2de52b28345bdbc76160e6b35eb",
+            0,
+            "1000000000",
+            13,
+            Signature.builder()
+                .pubKey("40771354dc314593e071eaf4d0f42ccb1fad6c7006c57464feeb7ab5872b7490")
+                .signature("65b00a17484fd045907e4efc290c4231d19ef8402155156cf6fe85ecf6fa912e763d4210625c9ed79aa31d45f505bd2404ee40015c4e028a1bf03f81dda45b00")
+                .build(),
+            new ChangePubKeyCREATE2(Numeric.toHexStringWithPrefixZeroPadded(BigInteger.ZERO, 40), Numeric.toHexStringWithPrefixZeroPadded(BigInteger.ZERO, 64), Numeric.toHexStringWithPrefixZeroPadded(BigInteger.ZERO, 64)),
             new TimeRange(0, 4294967295L)
         );
         return tx;
