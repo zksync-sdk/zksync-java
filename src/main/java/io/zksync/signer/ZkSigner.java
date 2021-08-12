@@ -64,15 +64,10 @@ public class ZkSigner {
     }
 
     public static ZkSigner fromRawPrivateKey(byte[] rawPrivateKey){
-        try {
-            // Generate private key from seed
-            ZksPrivateKey privateKey = crypto.generatePrivateKey(rawPrivateKey);
-            privateKey.data = rawPrivateKey;
+        ZksPrivateKey privateKey = new ZksPrivateKey.ByReference();
+        privateKey.data = rawPrivateKey;
 
-            return new ZkSigner(privateKey);
-        } catch (ZksSeedTooShortException e) {
-            throw new ZkSyncException(e);
-        }
+        return new ZkSigner(privateKey);
     }
 
     public static ZkSigner fromEthSigner(EthSigner<?> ethSigner, ChainId chainId) {
