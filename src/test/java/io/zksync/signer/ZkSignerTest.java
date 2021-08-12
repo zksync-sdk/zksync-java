@@ -16,6 +16,7 @@ public class ZkSignerTest {
     private static final String PUBKEY = "0x17f3708f5e2b2c39c640def0cf0010fd9dd9219650e389114ea9da47f5874184";
     private static final String PUBKEY_HASH = "sync:4f3015a1d2b93239f9510d8bc2cf49376a78a08e";
     private static final String PUBKEY_HASH_ETH = "sync:18e8446d7748f2de52b28345bdbc76160e6b35eb";
+    private static final String PUBKEY_HASH_RAW = "sync:45ef0ae7362eb021ae2d9ac251a3ee434f37ed73";
     private static final String SIGNATURE = "5462c3083d92b832d540c9068eed0a0450520f6dd2e4ab169de1a46585b394a4292896a2ebca3c0378378963a6bc1710b64c573598e73de3a33d6cec2f5d7403";
 
     @Test
@@ -30,6 +31,13 @@ public class ZkSignerTest {
         ZkSigner signer = ZkSigner.fromEthSigner(ethSigner, ChainId.Mainnet);
 
         assertEquals(signer.getPublicKeyHash(), PUBKEY_HASH_ETH);
+    }
+
+    @Test
+    public void testCreationFromRawPrivateKey() throws Exception {
+        ZkSigner signer = ZkSigner.fromRawPrivateKey(Numeric.hexStringToByteArray(PRIVATE_KEY));
+
+        assertEquals(signer.getPublicKeyHash(), PUBKEY_HASH_RAW);
     }
 
     @Test
