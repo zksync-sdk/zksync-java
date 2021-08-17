@@ -27,7 +27,7 @@ public class Create2EthSigner implements EthSigner<ChangePubKeyCREATE2> {
     private ChangePubKeyCREATE2 authData;
     private String address;
 
-    private Create2EthSigner(String zkSyncAddress, String address, ChangePubKeyCREATE2 create2Data, TransactionManager transactionManager) {
+    private Create2EthSigner(String address, ChangePubKeyCREATE2 create2Data, TransactionManager transactionManager) {
         this.transactionManager = transactionManager;
         this.authData = create2Data;
         this.address = address;
@@ -40,7 +40,7 @@ public class Create2EthSigner implements EthSigner<ChangePubKeyCREATE2> {
         final byte[] salt = generateSalt(arg, pubKeyHashStripped);
         final String address = generateAddress(create2Data.getCreatorAddress(), salt, Numeric.hexStringToByteArray(create2Data.getCodeHash()));
         final TransactionManager transactionManager = new ReadonlyTransactionManager(web3j, create2Data.getCreatorAddress());
-        return new Create2EthSigner(zkSyncAddress, address, create2Data, transactionManager);
+        return new Create2EthSigner(address, create2Data, transactionManager);
     }
 
     public static Create2EthSigner fromData(String zkSyncAddress, ChangePubKeyCREATE2 create2Data) {
@@ -49,7 +49,7 @@ public class Create2EthSigner implements EthSigner<ChangePubKeyCREATE2> {
 
         final byte[] salt = generateSalt(arg, pubKeyHashStripped);
         final String address = generateAddress(create2Data.getCreatorAddress(), salt, Numeric.hexStringToByteArray(create2Data.getCodeHash()));
-        return new Create2EthSigner(zkSyncAddress, address, create2Data, null);
+        return new Create2EthSigner(address, create2Data, null);
     }
 
     public static Create2EthSigner fromData(Web3j web3j, ZkSigner zkSigner, ChangePubKeyCREATE2 create2Data) {
