@@ -5,15 +5,21 @@ import java.security.SignatureException;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 
+import org.web3j.crypto.Hash;
 import org.web3j.tx.TransactionManager;
+import org.web3j.utils.Numeric;
 
 import io.zksync.domain.auth.ChangePubKeyVariant;
 import io.zksync.domain.swap.Order;
 import io.zksync.domain.token.Token;
+import io.zksync.domain.token.TokenId;
 import io.zksync.domain.transaction.ChangePubKey;
 import io.zksync.domain.transaction.ZkSyncTransaction;
 
 public interface EthSigner<A extends ChangePubKeyVariant> {
+
+    static final String MESSAGE_PREFIX = "\u0019Ethereum Signed Message:\n";
+    static final byte[] EIP1271_SUCCESS_VALUE = Numeric.hexStringToByteArray("0x1626ba7e");
     
     /**
      * Get wallet address
@@ -51,7 +57,7 @@ public interface EthSigner<A extends ChangePubKeyVariant> {
      * @param tokenBuy - Token object supported by ZkSync
      * @return Signature object
      */
-    CompletableFuture<EthSignature> signOrder(Order order, Token tokenSell, Token tokenBuy);
+    <T extends TokenId> CompletableFuture<EthSignature> signOrder(Order order, T tokenSell, T tokenBuy);
 
     /**
      * Sign batch of `ZkSync` type operation messages
@@ -104,5 +110,19 @@ public interface EthSigner<A extends ChangePubKeyVariant> {
      *     signature format error.
      */
     CompletableFuture<Boolean> verifySignature(EthSignature signature, byte[] message, boolean prefixed) throws SignatureException;
+
+    static byte[] getEthereumMessagePrefix(int messageLength) {
+        return MESSAGE_PREFIX.concat(String.valueOf(messageLength)).getBytes();
+    }
+
+    static byte[] getEthereumMessageHash(byte[] message) {
+        byte[] prefix = getEthereumMessagePrefix(message.length);
+
+        byte[] result = new byte[prefix.length + message.length];
+        System.arraycopy(prefix, 0, result, 0, prefix.length);
+        System.arraycopy(message, 0, result, prefix.length, message.length);
+
+        return Hash.sha3(result);
+    }
 
 }
