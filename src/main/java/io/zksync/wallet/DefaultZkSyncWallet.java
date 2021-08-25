@@ -3,6 +3,7 @@ package io.zksync.wallet;
 import io.zksync.domain.TimeRange;
 import io.zksync.domain.auth.ChangePubKeyOnchain;
 import io.zksync.domain.auth.ChangePubKeyVariant;
+import io.zksync.domain.auth.Toggle2FA;
 import io.zksync.domain.fee.TransactionFee;
 import io.zksync.domain.state.AccountState;
 import io.zksync.domain.swap.Order;
@@ -256,6 +257,40 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
     @Override
     public Tokens getTokens() {
         return this.provider.getTokens();
+    }
+
+    @Override
+    public boolean enable2FA() {
+        final Long timestamp = System.currentTimeMillis();
+        final Integer accountId = this.getAccountId();
+
+        final EthSignature ethSignature = ethSigner.signToggle(true, timestamp).join();
+
+        final Toggle2FA toggle2Fa = new Toggle2FA(
+            true,
+            accountId,
+            timestamp,
+            ethSignature
+        );
+
+        return provider.toggle2FA(toggle2Fa);
+    }
+
+    @Override
+    public boolean disable2FA() {
+        final Long timestamp = System.currentTimeMillis();
+        final Integer accountId = this.getAccountId();
+
+        final EthSignature ethSignature = ethSigner.signToggle(false, timestamp).join();
+
+        final Toggle2FA toggle2Fa = new Toggle2FA(
+            false,
+            accountId,
+            timestamp,
+            ethSignature
+        );
+
+        return provider.toggle2FA(toggle2Fa);
     }
 
     @SneakyThrows

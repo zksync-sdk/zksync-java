@@ -222,6 +222,20 @@ public interface ZkSyncWallet {
      */
     Tokens getTokens();
 
+    /**
+     * Send request to enable 2-Factor authentication
+     * 
+     * @return true if successful, false otherwise
+     */
+    boolean enable2FA();
+
+    /**
+     * Send request to disable 2-Factor authentication
+     * 
+     * @return true if successful, false otherwise
+     */
+    boolean disable2FA();
+
     EthereumProvider createEthereumProvider(Web3j web3j, ContractGasProvider contractGasProvider);
 }
 

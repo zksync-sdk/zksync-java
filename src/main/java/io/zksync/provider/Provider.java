@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 
 import io.zksync.domain.ChainId;
+import io.zksync.domain.auth.Toggle2FA;
 import io.zksync.domain.contract.ContractAddress;
 import io.zksync.domain.fee.TransactionFeeBatchRequest;
 import io.zksync.domain.fee.TransactionFeeDetails;
@@ -143,6 +144,14 @@ public interface Provider {
      * @return Hash of the sent transaction in Ethereum network
      */
     String getEthTransactionForWithdrawal(String zkSyncWithdrawalHash);
+
+    /**
+     * Send signed toggle 2FA request to ZkSync network.
+     * 
+     * @param toggle2FA - Request object
+     * @return - true if successful, false otherwise
+     */
+    boolean toggle2FA(Toggle2FA toggle2FA);
 
     /**
      * Fetch and update local cache of token list

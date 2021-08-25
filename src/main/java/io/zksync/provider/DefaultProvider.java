@@ -2,6 +2,7 @@ package io.zksync.provider;
 
 import org.apache.commons.lang3.tuple.Pair;
 
+import io.zksync.domain.auth.Toggle2FA;
 import io.zksync.domain.contract.ContractAddress;
 import io.zksync.domain.fee.TransactionFeeBatchRequest;
 import io.zksync.domain.fee.TransactionFeeDetails;
@@ -13,6 +14,7 @@ import io.zksync.domain.token.Tokens;
 import io.zksync.domain.transaction.TransactionDetails;
 import io.zksync.domain.transaction.ZkSyncTransaction;
 import io.zksync.signer.EthSignature;
+import io.zksync.transport.ZkSyncSuccess;
 import io.zksync.transport.ZkSyncTransport;
 import io.zksync.transport.response.ZksAccountState;
 import io.zksync.transport.response.ZksContractAddress;
@@ -20,6 +22,7 @@ import io.zksync.transport.response.ZksEthOpInfo;
 import io.zksync.transport.response.ZksGetConfirmationsForEthOpAmount;
 import io.zksync.transport.response.ZksSentTransaction;
 import io.zksync.transport.response.ZksSentTransactionBatch;
+import io.zksync.transport.response.ZksToggle2FA;
 import io.zksync.transport.response.ZksTokenPrice;
 import io.zksync.transport.response.ZksTokens;
 import io.zksync.transport.response.ZksTransactionDetails;
@@ -161,6 +164,13 @@ public class DefaultProvider implements Provider {
                 ZksSentTransaction.class);
 
         return response;
+    }
+
+    @Override
+    public boolean toggle2FA(Toggle2FA toggle2fa) {
+        final ZkSyncSuccess result = transport.send("toggle_2fa", Collections.singletonList(toggle2fa), ZksToggle2FA.class);
+
+        return result.getSuccess();
     }
 
     public void updateTokenSet() {

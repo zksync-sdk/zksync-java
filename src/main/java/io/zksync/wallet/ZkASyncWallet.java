@@ -228,5 +228,19 @@ public interface ZkASyncWallet {
      */
     String getAddress();
 
+    /**
+     * Send request to enable 2-Factor authentication
+     * 
+     * @return true if successful, false otherwise
+     */
+    CompletableFuture<Boolean> enable2FA();
+
+    /**
+     * Send request to disable 2-Factor authentication
+     * 
+     * @return true if successful, false otherwise
+     */
+    CompletableFuture<Boolean> disable2FA();
+
     EthereumProvider createEthereumProvider(Web3j web3j, ContractGasProvider contractGasProvider);
 }

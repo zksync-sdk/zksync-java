@@ -266,4 +266,18 @@ public class IntegrationTestTransactionReceiptProcessor {
         System.out.println(amount.toString());
     }
 
+    @Test
+    public void testEnable2FA() {
+        boolean success = wallet.enable2FA().join();
+
+        assertTrue(success);
+    }
+
+    @Test
+    public void testDisable2FA() {
+        boolean success = wallet.disable2FA().join();
+
+        assertTrue(success);
+    }
+
 }
