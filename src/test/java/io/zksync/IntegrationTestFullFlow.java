@@ -361,7 +361,7 @@ public class IntegrationTestFullFlow {
     }
 
     @Test
-    public void testDIsable2FA() {
+    public void testDisable2FA() {
         boolean success = wallet.disable2FA();
 
         assertTrue(success);

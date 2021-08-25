@@ -274,7 +274,7 @@ public class IntegrationTestTransactionReceiptProcessor {
     }
 
     @Test
-    public void testDIsable2FA() {
+    public void testDisable2FA() {
         boolean success = wallet.disable2FA().join();
 
         assertTrue(success);
