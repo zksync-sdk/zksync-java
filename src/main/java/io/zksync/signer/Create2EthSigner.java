@@ -78,6 +78,11 @@ public class Create2EthSigner implements EthSigner<ChangePubKeyCREATE2> {
     }
 
     @Override
+    public CompletableFuture<EthSignature> signToggle(boolean enable, Long timestamp) {
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
     public <T extends ZkSyncTransaction> CompletableFuture<EthSignature> signTransaction(T transaction, Integer nonce,
             Token token, BigInteger fee) {
         return CompletableFuture.completedFuture(null);

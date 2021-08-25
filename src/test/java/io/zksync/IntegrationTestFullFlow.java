@@ -352,5 +352,19 @@ public class IntegrationTestFullFlow {
 
         System.out.println(amount.toString());
     }
+
+    @Test
+    public void testEnable2FA() {
+        boolean success = wallet.enable2FA();
+
+        assertTrue(success);
+    }
+
+    @Test
+    public void testDIsable2FA() {
+        boolean success = wallet.disable2FA();
+
+        assertTrue(success);
+    }
     
 }

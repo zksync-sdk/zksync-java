@@ -16,6 +16,7 @@ import io.zksync.domain.TimeRange;
 import io.zksync.domain.TransactionBuildHelper;
 import io.zksync.domain.auth.ChangePubKeyOnchain;
 import io.zksync.domain.auth.ChangePubKeyVariant;
+import io.zksync.domain.auth.Toggle2FA;
 import io.zksync.domain.fee.TransactionFee;
 import io.zksync.domain.state.AccountState;
 import io.zksync.domain.swap.Order;
@@ -255,6 +256,40 @@ public class DefaultZkASyncWallet<A extends ChangePubKeyVariant, S extends EthSi
         ZkSync contract = ZkSync.load(contractAddress, web3j, this.ethSigner.getTransactionManager(), contractGasProvider);
         DefaultEthereumProvider ethereum = new DefaultEthereumProvider(web3j, this.ethSigner, contract);
         return ethereum;
+    }
+
+    @Override
+    public CompletableFuture<Boolean> enable2FA() {
+        final Long timestamp = System.currentTimeMillis();
+
+        return ethSigner.signToggle(true, timestamp)
+            .thenApply(ethSignature -> {
+                final Toggle2FA toggle2Fa = new Toggle2FA(
+                    true,
+                    this.getAccountId().join(),
+                    timestamp,
+                    ethSignature
+                );
+
+                return provider.toggle2FA(toggle2Fa).join();
+            });
+    }
+
+    @Override
+    public CompletableFuture<Boolean> disable2FA() {
+        final Long timestamp = System.currentTimeMillis();
+
+        return ethSigner.signToggle(false, timestamp)
+            .thenApply(ethSignature -> {
+                final Toggle2FA toggle2Fa = new Toggle2FA(
+                    false,
+                    this.getAccountId().join(),
+                    timestamp,
+                    ethSignature
+                );
+
+                return provider.toggle2FA(toggle2Fa).join();
+            });
     }
 
     private CompletableFuture<String> submitSignedTransaction(ZkSyncTransaction signedTransaction,
