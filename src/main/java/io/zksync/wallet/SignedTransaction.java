@@ -36,6 +36,10 @@ public class SignedTransaction<T extends ZkSyncTransaction> {
     }
 
     public static <T extends ZkSyncTransaction> SignedTransaction<T> fromPair(Pair<T, EthSignature> tx) {
-        return new SignedTransaction<T>(tx.getLeft(), new EthSignature[] {tx.getRight()});
+        if (tx.getRight() == null) {
+            return new SignedTransaction<T>(tx.getLeft(), null); 
+        } else {
+            return new SignedTransaction<T>(tx.getLeft(), new EthSignature[] {tx.getRight()});
+        }
     }
 }
