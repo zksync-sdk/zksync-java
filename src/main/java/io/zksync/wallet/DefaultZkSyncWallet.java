@@ -276,7 +276,8 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
             true,
             accountId,
             timestamp,
-            ethSignature
+            ethSignature,
+            pubKeyHash
         );
 
         return provider.toggle2FA(toggle2Fa);
@@ -297,7 +298,8 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
             false,
             accountId,
             timestamp,
-            ethSignature
+            ethSignature,
+            pubKeyHash
         );
 
         return provider.toggle2FA(toggle2Fa);

@@ -272,7 +272,8 @@ public class DefaultZkASyncWallet<A extends ChangePubKeyVariant, S extends EthSi
                     true,
                     this.getAccountId().join(),
                     timestamp,
-                    ethSignature
+                    ethSignature,
+                    pubKeyHash
                 );
 
                 return provider.toggle2FA(toggle2Fa).join();
@@ -291,7 +292,8 @@ public class DefaultZkASyncWallet<A extends ChangePubKeyVariant, S extends EthSi
                     false,
                     this.getAccountId().join(),
                     timestamp,
-                    ethSignature
+                    ethSignature,
+                    pubKeyHash
                 );
 
                 return provider.toggle2FA(toggle2Fa).join();
