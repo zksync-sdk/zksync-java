@@ -8,6 +8,7 @@ import org.web3j.protocol.Web3j;
 import org.web3j.tuples.generated.Tuple2;
 import org.web3j.tx.gas.ContractGasProvider;
 
+import io.reactivex.annotations.Nullable;
 import io.zksync.domain.TimeRange;
 import io.zksync.domain.auth.ChangePubKeyVariant;
 import io.zksync.domain.fee.TransactionFee;
@@ -233,14 +234,14 @@ public interface ZkASyncWallet {
      * 
      * @return true if successful, false otherwise
      */
-    CompletableFuture<Boolean> enable2FA();
+    CompletableFuture<Boolean> enable2FA(@Nullable String pubKeyHash);
 
     /**
      * Send request to disable 2-Factor authentication
      * 
      * @return true if successful, false otherwise
      */
-    CompletableFuture<Boolean> disable2FA();
+    CompletableFuture<Boolean> disable2FA(@Nullable String pubKeyHash);
 
     EthereumProvider createEthereumProvider(Web3j web3j, ContractGasProvider contractGasProvider);
 }

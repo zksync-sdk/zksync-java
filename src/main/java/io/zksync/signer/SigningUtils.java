@@ -118,6 +118,12 @@ public class SigningUtils {
         return result;
     }
 
+    public static String getToggle2FAMessage(boolean require2FA, Long timestamp, String pubKeyHash) {
+        final String message = getToggle2FAMessage(require2FA, timestamp);
+
+        return String.format("%s\nPubKeyHash: %s", message, pubKeyHash);
+    }
+
     public static String getToggle2FAMessage(boolean require2FA, Long timestamp) {
         final String message;
         if (require2FA) {

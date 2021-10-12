@@ -63,7 +63,7 @@ public class ZkSigner {
         }
     }
 
-    public static ZkSigner fromRawPrivateKey(byte[] rawPrivateKey){
+    public static ZkSigner fromRawPrivateKey(byte[] rawPrivateKey) {
         ZksPrivateKey privateKey = new ZksPrivateKey.ByReference();
         privateKey.data = rawPrivateKey;
 

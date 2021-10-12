@@ -227,14 +227,14 @@ public interface ZkSyncWallet {
      * 
      * @return true if successful, false otherwise
      */
-    boolean enable2FA();
+    boolean enable2FA(@Nullable String pubKeyHash);
 
     /**
      * Send request to disable 2-Factor authentication
      * 
      * @return true if successful, false otherwise
      */
-    boolean disable2FA();
+    boolean disable2FA(@Nullable String pubKeyHash);
 
     EthereumProvider createEthereumProvider(Web3j web3j, ContractGasProvider contractGasProvider);
 }

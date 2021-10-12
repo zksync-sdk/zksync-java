@@ -1,5 +1,6 @@
 package io.zksync.wallet;
 
+import io.reactivex.annotations.Nullable;
 import io.zksync.domain.TimeRange;
 import io.zksync.domain.auth.ChangePubKeyOnchain;
 import io.zksync.domain.auth.ChangePubKeyVariant;
@@ -35,6 +36,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.web3j.protocol.Web3j;
 import org.web3j.tuples.generated.Tuple2;
 import org.web3j.tx.gas.ContractGasProvider;
+import org.web3j.utils.Strings;
 
 public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSigner<A>> implements ZkSyncWallet {
 
@@ -260,11 +262,15 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
     }
 
     @Override
-    public boolean enable2FA() {
+    public boolean enable2FA(@Nullable String pubKeyHash) {
         final Long timestamp = System.currentTimeMillis();
         final Integer accountId = this.getAccountId();
 
-        final EthSignature ethSignature = ethSigner.signToggle(true, timestamp).join();
+        final EthSignature ethSignature = (
+            Strings.isEmpty(pubKeyHash) ?
+                ethSigner.signToggle(true, timestamp) :
+                ethSigner.signToggle(true, timestamp, pubKeyHash)
+        ).join();
 
         final Toggle2FA toggle2Fa = new Toggle2FA(
             true,
@@ -277,11 +283,15 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
     }
 
     @Override
-    public boolean disable2FA() {
+    public boolean disable2FA(@Nullable String pubKeyHash) {
         final Long timestamp = System.currentTimeMillis();
         final Integer accountId = this.getAccountId();
 
-        final EthSignature ethSignature = ethSigner.signToggle(false, timestamp).join();
+        final EthSignature ethSignature = (
+            Strings.isEmpty(pubKeyHash) ?
+                ethSigner.signToggle(false, timestamp) :
+                ethSigner.signToggle(false, timestamp, pubKeyHash)
+        ).join();
 
         final Toggle2FA toggle2Fa = new Toggle2FA(
             false,
