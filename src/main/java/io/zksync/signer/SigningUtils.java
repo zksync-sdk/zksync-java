@@ -213,10 +213,27 @@ public class SigningUtils {
         return numberToBytesBE(tokenId, 4);
     }
 
+    /**
+     * Transforms the fee amount into the packed form.
+     * As the packed form for fee is smaller than one for the token,
+     * the same value must be packable as a token amount, but not packable
+     * as a fee amount.
+     * 
+     * @param amount - The packable amount of fee
+     * @return Packed fee amount bytes
+     * @throws Error If the provided fee amount is not packable
+     */
     public static byte[] feeToBytes(BigInteger fee) {
         return packFeeChecked(fee);
     }
 
+    /**
+     * Transforms the token amount into packed form.
+     * 
+     * @param amount - The packable token amount
+     * @return Packed token amount bytes
+     * @throws Error If the provided token amount is not packable
+     */
     public static byte[] amountPackedToBytes(BigInteger amount) {
         return packAmountChecked(amount);
     }
@@ -260,20 +277,58 @@ public class SigningUtils {
         return packAmount(amount);
     }
 
+    /**
+     * Transforms the fee amount into the packed form.
+     * As the packed form for fee is smaller than one for the token,
+     * the same value must be packable as a token amount, but not packable
+     * as a fee amount.
+     * If the provided fee amount is not packable, it is rounded down to the
+     * closest amount that fits in packed form. As a result, some precision will be lost.
+     * 
+     * @param amount - The packable amount of fee
+     * @return Packed fee amount
+     */
     private static BigInteger closestPackableTransactionFee(BigInteger fee) {
         final byte[] packedFee = packFee(fee);
         return decimalByteArrayToInteger(packedFee, FEE_EXPONENT_BIT_WIDTH, FEE_MANTISSA_BIT_WIDTH, 10);
     }
 
+    /**
+     * Transforms the token amount into packed form.
+     * If the provided token amount is not packable, it is rounded down to the
+     * closest amount that fits in packed form. As a result, some precision will be lost.
+     * 
+     * @param amount - The packable token amount
+     * @return Packed token amount
+     */
     private static BigInteger closestPackableTransactionAmount(BigInteger amount) {
         final byte[] packedAmount = packAmount(amount);
         return decimalByteArrayToInteger(packedAmount, AMOUNT_EXPONENT_BIT_WIDTH, AMOUNT_MANTISSA_BIT_WIDTH, 10);
     }
 
+    /**
+     * Transforms the fee amount into the packed form.
+     * As the packed form for fee is smaller than one for the token,
+     * the same value must be packable as a token amount, but not packable
+     * as a fee amount.
+     * If the provided fee amount is not packable, it is rounded down to the
+     * closest amount that fits in packed form. As a result, some precision will be lost.
+     * 
+     * @param amount - The packable amount of fee
+     * @return Packed fee amount bytes
+     */
     private static byte[] packFee(BigInteger fee) {
         return reverseBits(integerToDecimalByteArray(fee, FEE_EXPONENT_BIT_WIDTH, FEE_MANTISSA_BIT_WIDTH, 10));
     }
 
+    /**
+     * Transforms the token amount into packed form.
+     * If the provided token amount is not packable, it is rounded down to the
+     * closest amount that fits in packed form. As a result, some precision will be lost.
+     * 
+     * @param amount - The packable token amount
+     * @return Packed token amount bytes
+     */
     private static byte[] packAmount(BigInteger amount) {
         return reverseBits(integerToDecimalByteArray(amount, AMOUNT_EXPONENT_BIT_WIDTH, AMOUNT_MANTISSA_BIT_WIDTH, 10));
     }
