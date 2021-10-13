@@ -16,6 +16,7 @@ import io.zksync.exception.ZkSyncIncorrectCredentialsException;
 import io.zksync.sdk.zkscrypto.lib.ZksCrypto;
 import io.zksync.sdk.zkscrypto.lib.entity.ZksPackedPublicKey;
 import io.zksync.sdk.zkscrypto.lib.entity.ZksPrivateKey;
+import io.zksync.sdk.zkscrypto.lib.entity.ZksSignature;
 import io.zksync.sdk.zkscrypto.lib.exception.ZksMusigTooLongException;
 import io.zksync.sdk.zkscrypto.lib.exception.ZksSeedTooShortException;
 import io.zksync.signer.EthSignature.SignatureType;
@@ -96,6 +97,15 @@ public class ZkSigner {
         } catch (ZksMusigTooLongException e) {
             throw new ZkSyncException(e);
         }
+    }
+
+    public boolean verify(byte[] message, Signature signature) {
+        ZksPackedPublicKey zksPublicKey = new ZksPackedPublicKey.ByReference();
+        zksPublicKey.data = Numeric.hexStringToByteArray(signature.getPubKey());
+        ZksSignature zksSignature = new ZksSignature.ByReference();
+        zksSignature.data = Numeric.hexStringToByteArray(signature.getSignature());
+
+        return crypto.verifySignature(zksPublicKey, zksSignature, message);
     }
 
     public String getPublicKeyHash() {
@@ -302,7 +312,7 @@ public class ZkSigner {
         return order;
     }
 
-    byte[] getOrderBytes(Order order) {
+    public byte[] getOrderBytes(Order order) {
         try {
             final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             outputStream.write(0x6f); // ASCII 'o' in hex for (o)rder
