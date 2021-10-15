@@ -288,7 +288,7 @@ public class SigningUtils {
      * @param amount - The packable amount of fee
      * @return Packed fee amount
      */
-    private static BigInteger closestPackableTransactionFee(BigInteger fee) {
+    public static BigInteger closestPackableTransactionFee(BigInteger fee) {
         final byte[] packedFee = packFee(fee);
         return decimalByteArrayToInteger(packedFee, FEE_EXPONENT_BIT_WIDTH, FEE_MANTISSA_BIT_WIDTH, 10);
     }
@@ -301,7 +301,7 @@ public class SigningUtils {
      * @param amount - The packable token amount
      * @return Packed token amount
      */
-    private static BigInteger closestPackableTransactionAmount(BigInteger amount) {
+    public static BigInteger closestPackableTransactionAmount(BigInteger amount) {
         final byte[] packedAmount = packAmount(amount);
         return decimalByteArrayToInteger(packedAmount, AMOUNT_EXPONENT_BIT_WIDTH, AMOUNT_MANTISSA_BIT_WIDTH, 10);
     }
@@ -317,7 +317,7 @@ public class SigningUtils {
      * @param amount - The packable amount of fee
      * @return Packed fee amount bytes
      */
-    private static byte[] packFee(BigInteger fee) {
+    public static byte[] packFee(BigInteger fee) {
         return reverseBits(integerToDecimalByteArray(fee, FEE_EXPONENT_BIT_WIDTH, FEE_MANTISSA_BIT_WIDTH, 10));
     }
 
@@ -329,7 +329,7 @@ public class SigningUtils {
      * @param amount - The packable token amount
      * @return Packed token amount bytes
      */
-    private static byte[] packAmount(BigInteger amount) {
+    public static byte[] packAmount(BigInteger amount) {
         return reverseBits(integerToDecimalByteArray(amount, AMOUNT_EXPONENT_BIT_WIDTH, AMOUNT_MANTISSA_BIT_WIDTH, 10));
     }
 
