@@ -227,11 +227,12 @@ public interface ZkSyncWallet {
      * 
      * @return true if successful, false otherwise
      */
-    boolean enable2FA(@Nullable String pubKeyHash);
+    boolean enable2FA();
 
     /**
      * Send request to disable 2-Factor authentication
      * 
+     * @param pubKeyHash - ZkSync public key hash of the account
      * @return true if successful, false otherwise
      */
     boolean disable2FA(@Nullable String pubKeyHash);

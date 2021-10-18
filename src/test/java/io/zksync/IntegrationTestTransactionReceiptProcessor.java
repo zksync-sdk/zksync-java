@@ -268,7 +268,7 @@ public class IntegrationTestTransactionReceiptProcessor {
 
     @Test
     public void testEnable2FA() {
-        boolean success = wallet.enable2FA(null).join();
+        boolean success = wallet.enable2FA().join();
 
         assertTrue(success);
     }
@@ -276,13 +276,6 @@ public class IntegrationTestTransactionReceiptProcessor {
     @Test
     public void testDisable2FA() {
         boolean success = wallet.disable2FA(null).join();
-
-        assertTrue(success);
-    }
-
-    @Test
-    public void testEnable2FAToPubKey() {
-        boolean success = wallet.enable2FA(zkSigner.getPublicKeyHash()).join();
 
         assertTrue(success);
     }

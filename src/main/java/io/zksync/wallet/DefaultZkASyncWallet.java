@@ -261,19 +261,16 @@ public class DefaultZkASyncWallet<A extends ChangePubKeyVariant, S extends EthSi
     }
 
     @Override
-    public CompletableFuture<Boolean> enable2FA(@Nullable String pubKeyHash) {
+    public CompletableFuture<Boolean> enable2FA() {
         final Long timestamp = System.currentTimeMillis();
 
-        return (Strings.isEmpty(pubKeyHash) ?
-                    ethSigner.signToggle(true, timestamp) :
-                    ethSigner.signToggle(true, timestamp, pubKeyHash)
-            ).thenApply(ethSignature -> {
+        return ethSigner.signToggle(true, timestamp).thenApply(ethSignature -> {
                 final Toggle2FA toggle2Fa = new Toggle2FA(
                     true,
                     this.getAccountId().join(),
                     timestamp,
                     ethSignature,
-                    pubKeyHash
+                    null
                 );
 
                 return provider.toggle2FA(toggle2Fa).join();
