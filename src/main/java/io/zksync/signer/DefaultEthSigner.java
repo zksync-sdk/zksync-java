@@ -121,6 +121,13 @@ public class DefaultEthSigner implements EthSigner<ChangePubKeyECDSA> {
         return signMessage(message.getBytes(), true);
     }
 
+    @Override
+    public CompletableFuture<EthSignature> signToggle(boolean enable, Long timestamp, String publicKeyHash) {
+        final String message = SigningUtils.getToggle2FAMessage(enable, timestamp, publicKeyHash);
+
+        return signMessage(message.getBytes(), true);
+    }
+
     public <T extends ZkSyncTransaction> CompletableFuture<EthSignature> signTransaction(T tx, Integer nonce, Token token, BigInteger fee) {
         switch (tx.getType()) {
             case "ChangePubKey":

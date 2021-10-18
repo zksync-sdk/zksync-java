@@ -2,6 +2,7 @@ package io.zksync.domain.swap;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 import org.web3j.tuples.generated.Tuple2;
@@ -47,9 +48,22 @@ public class Order {
         return this.recipientAddress;
     }
 
+    @JsonSetter
+    public void setRecipient(String recipientAddress) {
+        this.recipientAddress = recipientAddress;
+    }
+
     @JsonGetter("ratio")
     public List<BigInteger> getRatioJson() {
         return Arrays.asList(ratio.component1(), ratio.component2());
+    }
+
+    @JsonSetter("ratio")
+    public void setRatio(List<BigInteger> ratio) {
+        if (ratio == null || ratio.size() != 2) {
+            throw new IllegalArgumentException("Incorrect amount of ratio");
+        }
+        this.ratio = new Tuple2<>(ratio.get(0), ratio.get(1));
     }
 
     @JsonIgnore

@@ -39,6 +39,8 @@ public interface EthSigner<A extends ChangePubKeyVariant> {
 
     CompletableFuture<EthSignature> signToggle(boolean enable, Long timestamp);
 
+    CompletableFuture<EthSignature> signToggle(boolean enable, Long timestamp, String publicKeyHash);
+    
     /**
      * Sign `ZkSync` type operation message
      * 

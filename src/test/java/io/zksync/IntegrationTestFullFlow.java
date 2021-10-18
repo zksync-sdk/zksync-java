@@ -362,7 +362,14 @@ public class IntegrationTestFullFlow {
 
     @Test
     public void testDisable2FA() {
-        boolean success = wallet.disable2FA();
+        boolean success = wallet.disable2FA(null);
+
+        assertTrue(success);
+    }
+
+    @Test
+    public void testDisable2FAToPubKey() {
+        boolean success = wallet.disable2FA(zkSigner.getPublicKeyHash());
 
         assertTrue(success);
     }

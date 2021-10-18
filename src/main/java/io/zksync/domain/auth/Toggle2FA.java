@@ -15,4 +15,6 @@ public class Toggle2FA {
     private Long timestamp;
 
     private EthSignature signature;
+
+    private String pubKeyHash;
 }

@@ -11,7 +11,9 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.web3j.protocol.Web3j;
 import org.web3j.tuples.generated.Tuple2;
 import org.web3j.tx.gas.ContractGasProvider;
+import org.web3j.utils.Strings;
 
+import io.reactivex.annotations.Nullable;
 import io.zksync.domain.TimeRange;
 import io.zksync.domain.TransactionBuildHelper;
 import io.zksync.domain.auth.ChangePubKeyOnchain;
@@ -262,13 +264,13 @@ public class DefaultZkASyncWallet<A extends ChangePubKeyVariant, S extends EthSi
     public CompletableFuture<Boolean> enable2FA() {
         final Long timestamp = System.currentTimeMillis();
 
-        return ethSigner.signToggle(true, timestamp)
-            .thenApply(ethSignature -> {
+        return ethSigner.signToggle(true, timestamp).thenApply(ethSignature -> {
                 final Toggle2FA toggle2Fa = new Toggle2FA(
                     true,
                     this.getAccountId().join(),
                     timestamp,
-                    ethSignature
+                    ethSignature,
+                    null
                 );
 
                 return provider.toggle2FA(toggle2Fa).join();
@@ -276,16 +278,19 @@ public class DefaultZkASyncWallet<A extends ChangePubKeyVariant, S extends EthSi
     }
 
     @Override
-    public CompletableFuture<Boolean> disable2FA() {
+    public CompletableFuture<Boolean> disable2FA(@Nullable String pubKeyHash) {
         final Long timestamp = System.currentTimeMillis();
 
-        return ethSigner.signToggle(false, timestamp)
-            .thenApply(ethSignature -> {
+        return (Strings.isEmpty(pubKeyHash) ?
+                    ethSigner.signToggle(false, timestamp) :
+                    ethSigner.signToggle(false, timestamp, pubKeyHash)
+            ).thenApply(ethSignature -> {
                 final Toggle2FA toggle2Fa = new Toggle2FA(
                     false,
                     this.getAccountId().join(),
                     timestamp,
-                    ethSignature
+                    ethSignature,
+                    pubKeyHash
                 );
 
                 return provider.toggle2FA(toggle2Fa).join();

@@ -232,9 +232,10 @@ public interface ZkSyncWallet {
     /**
      * Send request to disable 2-Factor authentication
      * 
+     * @param pubKeyHash - ZkSync public key hash of the account
      * @return true if successful, false otherwise
      */
-    boolean disable2FA();
+    boolean disable2FA(@Nullable String pubKeyHash);
 
     EthereumProvider createEthereumProvider(Web3j web3j, ContractGasProvider contractGasProvider);
 }
