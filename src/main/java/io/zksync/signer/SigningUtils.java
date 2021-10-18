@@ -219,7 +219,7 @@ public class SigningUtils {
      * the same value must be packable as a token amount, but not packable
      * as a fee amount.
      * 
-     * @param amount - The packable amount of fee
+     * @param fee - The packable amount of fee
      * @return Packed fee amount bytes
      * @throws Error If the provided fee amount is not packable
      */
@@ -285,7 +285,7 @@ public class SigningUtils {
      * If the provided fee amount is not packable, it is rounded down to the
      * closest amount that fits in packed form. As a result, some precision will be lost.
      * 
-     * @param amount - The packable amount of fee
+     * @param fee - The packable amount of fee
      * @return Packed fee amount
      */
     public static BigInteger closestPackableTransactionFee(BigInteger fee) {
@@ -314,7 +314,7 @@ public class SigningUtils {
      * If the provided fee amount is not packable, it is rounded down to the
      * closest amount that fits in packed form. As a result, some precision will be lost.
      * 
-     * @param amount - The packable amount of fee
+     * @param fee - The packable amount of fee
      * @return Packed fee amount bytes
      */
     public static byte[] packFee(BigInteger fee) {
