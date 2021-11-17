@@ -294,6 +294,22 @@ public class SigningUtils {
     }
 
     /**
+     * Transforms the fee amount into the packed form.
+     * As the packed form for fee is smaller than one for the token,
+     * the same value must be packable as a token amount, but not packable
+     * as a fee amount.
+     * If the provided fee amount is not packable, it is rounded up to the
+     * closest amount that fits in packed form. As a result, some precision will be lost.
+     * 
+     * @param amount - The packable amount of fee
+     * @return Packed fee amount
+     */
+    public static BigInteger closestGreaterOrEqPackableTransactionFee(BigInteger fee) {
+        final byte[] packedFee = packFeeUp(fee);
+        return decimalByteArrayToInteger(packedFee, FEE_EXPONENT_BIT_WIDTH, FEE_MANTISSA_BIT_WIDTH, 10);
+    }
+
+    /**
      * Transforms the token amount into packed form.
      * If the provided token amount is not packable, it is rounded down to the
      * closest amount that fits in packed form. As a result, some precision will be lost.
@@ -303,6 +319,19 @@ public class SigningUtils {
      */
     public static BigInteger closestPackableTransactionAmount(BigInteger amount) {
         final byte[] packedAmount = packAmount(amount);
+        return decimalByteArrayToInteger(packedAmount, AMOUNT_EXPONENT_BIT_WIDTH, AMOUNT_MANTISSA_BIT_WIDTH, 10);
+    }
+
+    /**
+     * Transforms the token amount into packed form.
+     * If the provided token amount is not packable, it is rounded up to the
+     * closest amount that fits in packed form. As a result, some precision will be lost.
+     * 
+     * @param amount - The packable token amount
+     * @return Packed token amount
+     */
+    public static BigInteger closestGreaterOrEqPackableTransactionAmount(BigInteger amount) {
+        final byte[] packedAmount = packAmountUp(amount);
         return decimalByteArrayToInteger(packedAmount, AMOUNT_EXPONENT_BIT_WIDTH, AMOUNT_MANTISSA_BIT_WIDTH, 10);
     }
 
@@ -322,6 +351,21 @@ public class SigningUtils {
     }
 
     /**
+     * Transforms the fee amount into the packed form.
+     * As the packed form for fee is smaller than one for the token,
+     * the same value must be packable as a token amount, but not packable
+     * as a fee amount.
+     * If the provided fee amount is not packable, it is rounded up to the
+     * closest amount that fits in packed form. As a result, some precision will be lost.
+     * 
+     * @param amount - The packable amount of fee
+     * @return Packed fee amount bytes
+     */
+    public static byte[] packFeeUp(BigInteger fee) {
+        return reverseBits(integerToDecimalByteArrayUp(fee, FEE_EXPONENT_BIT_WIDTH, FEE_MANTISSA_BIT_WIDTH, 10));
+    }
+
+    /**
      * Transforms the token amount into packed form.
      * If the provided token amount is not packable, it is rounded down to the
      * closest amount that fits in packed form. As a result, some precision will be lost.
@@ -331,6 +375,18 @@ public class SigningUtils {
      */
     public static byte[] packAmount(BigInteger amount) {
         return reverseBits(integerToDecimalByteArray(amount, AMOUNT_EXPONENT_BIT_WIDTH, AMOUNT_MANTISSA_BIT_WIDTH, 10));
+    }
+
+    /**
+     * Transforms the token amount into packed form.
+     * If the provided token amount is not packable, it is rounded up to the
+     * closest amount that fits in packed form. As a result, some precision will be lost.
+     * 
+     * @param amount - The packable token amount
+     * @return Packed token amount bytes
+     */
+    public static byte[] packAmountUp(BigInteger amount) {
+        return reverseBits(integerToDecimalByteArrayUp(amount, AMOUNT_EXPONENT_BIT_WIDTH, AMOUNT_MANTISSA_BIT_WIDTH, 10));
     }
 
     private static byte[] integerToDecimalByteArray(BigInteger value,
@@ -352,6 +408,39 @@ public class SigningUtils {
         while (mantissa.compareTo(maxMantissa) > 0) {
             mantissa =  mantissa.divide(BigInteger.valueOf(expBase));
             exponent++;
+        }
+
+        final Bits exponentBitSet = numberToBitsLE(Long.valueOf(exponent), expBits);
+        final Bits mantissaBitSet = numberToBitsLE(mantissa.longValue(), mantissaBits);
+
+        final Bits reversed = combineBitSets(exponentBitSet, mantissaBitSet).reverse();
+
+        return reverseBits(bitsIntoBytesInBEOrder(reversed));
+    }
+
+    private static byte[] integerToDecimalByteArrayUp(BigInteger value,
+                                                    int expBits,
+                                                    int mantissaBits,
+                                                    int expBase) {
+        final BigInteger maxExponent = BigInteger.valueOf(10).pow(
+                BigInteger.valueOf(2).pow(expBits).subtract(BigInteger.ONE).intValue());
+
+        final BigInteger maxMantissa = BigInteger.valueOf(2).pow(mantissaBits).subtract(BigInteger.ONE);
+
+        if (value.compareTo(maxMantissa.multiply(maxExponent)) > 0) {
+            throw new ZkSyncException("Integer is too big");
+        }
+
+        int exponent = 0;
+        BigInteger mantissa = value;
+
+        while (mantissa.compareTo(maxMantissa) > 0) {
+            mantissa =  mantissa.divide(BigInteger.valueOf(expBase));
+            exponent++;
+        }
+
+        if (!value.mod(BigInteger.valueOf(expBase)).equals(BigInteger.ZERO)) {
+            mantissa = mantissa.add(BigInteger.ONE);
         }
 
         final Bits exponentBitSet = numberToBitsLE(Long.valueOf(exponent), expBits);
