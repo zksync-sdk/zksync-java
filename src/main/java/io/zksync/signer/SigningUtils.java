@@ -406,8 +406,19 @@ public class SigningUtils {
         BigInteger mantissa = value;
 
         while (mantissa.compareTo(maxMantissa) > 0) {
-            mantissa =  mantissa.divide(BigInteger.valueOf(expBase));
+            mantissa = mantissa.divide(BigInteger.valueOf(expBase));
             exponent++;
+        }
+
+        if (exponent != 0) {
+            BigInteger variant1 = value;
+            BigInteger variant2 = value.divide(mantissa).divide(BigInteger.valueOf(expBase)).multiply(maxMantissa);
+            BigInteger diff1 = value.subtract(variant1);
+            BigInteger diff2 = value.subtract(variant2);
+            if (diff2.compareTo(diff1) < 0) {
+                mantissa = maxMantissa;
+                exponent-- ;
+            }
         }
 
         final Bits exponentBitSet = numberToBitsLE(Long.valueOf(exponent), expBits);
