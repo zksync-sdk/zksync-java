@@ -39,6 +39,7 @@ public class Order {
     @JsonIgnore
     private Tuple2<BigInteger, BigInteger> ratio;
 
+    @JsonIgnore
     private BigInteger amount;
 
     private Signature signature;
@@ -64,6 +65,16 @@ public class Order {
             throw new IllegalArgumentException("Incorrect amount of ratio");
         }
         this.ratio = new Tuple2<>(ratio.get(0), ratio.get(1));
+    }
+
+    @JsonGetter("amount")
+    public String getAmountSrting() {
+        return amount.toString();
+    }
+
+    @JsonSetter("amount")
+    public void getAmountSrting(String amount) {
+        this.amount = new BigInteger(amount);
     }
 
     @JsonIgnore
