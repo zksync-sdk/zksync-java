@@ -48,8 +48,8 @@ public class Swap implements ZkSyncTransaction {
     }
 
     @JsonGetter("amounts")
-    public List<BigInteger> getAmountsJson() {
-        return Arrays.asList(amounts.component1(), amounts.component2());
+    public List<String> getAmountsJson() {
+        return Arrays.asList(amounts.component1().toString(), amounts.component2().toString());
     }
 
     @JsonIgnore

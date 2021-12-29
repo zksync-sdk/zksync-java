@@ -1,6 +1,8 @@
 package io.zksync.domain.transaction;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 import io.zksync.domain.Signature;
@@ -28,6 +30,7 @@ public class Withdraw implements ZkSyncTransaction {
 
     private Integer token;
 
+    @JsonIgnore
     private BigInteger amount;
 
     private String fee;
@@ -38,6 +41,16 @@ public class Withdraw implements ZkSyncTransaction {
 
     @JsonUnwrapped
     private TimeRange timeRange;
+
+    @JsonGetter("amount")
+    public String getAmountSrting() {
+        return amount.toString();
+    }
+
+    @JsonSetter("amount")
+    public void getAmountSrting(String amount) {
+        this.amount = new BigInteger(amount);
+    }
 
     @JsonIgnore
     public BigInteger getFeeInteger() {
