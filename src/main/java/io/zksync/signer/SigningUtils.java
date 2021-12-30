@@ -301,7 +301,7 @@ public class SigningUtils {
      * If the provided fee amount is not packable, it is rounded up to the
      * closest amount that fits in packed form. As a result, some precision will be lost.
      * 
-     * @param amount - The packable amount of fee
+     * @param fee - The packable amount of fee
      * @return Packed fee amount
      */
     public static BigInteger closestGreaterOrEqPackableTransactionFee(BigInteger fee) {
@@ -358,7 +358,7 @@ public class SigningUtils {
      * If the provided fee amount is not packable, it is rounded up to the
      * closest amount that fits in packed form. As a result, some precision will be lost.
      * 
-     * @param amount - The packable amount of fee
+     * @param fee - The packable amount of fee
      * @return Packed fee amount bytes
      */
     public static byte[] packFeeUp(BigInteger fee) {
