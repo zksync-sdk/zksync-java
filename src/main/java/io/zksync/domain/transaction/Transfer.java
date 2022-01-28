@@ -47,12 +47,12 @@ public class Transfer implements ZkSyncTransaction {
     private TimeRange timeRange;
 
     @JsonGetter("amount")
-    public String getAmountSrting() {
+    public String getAmountString() {
         return amount.toString();
     }
 
     @JsonSetter("amount")
-    public void getAmountSrting(String amount) {
+    public void setAmountString(String amount) {
         this.amount = new BigInteger(amount);
     }
 

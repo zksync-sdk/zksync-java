@@ -55,25 +55,25 @@ public class Order {
     }
 
     @JsonGetter("ratio")
-    public List<BigInteger> getRatioJson() {
-        return Arrays.asList(ratio.component1(), ratio.component2());
+    public List<String> getRatioJson() {
+        return Arrays.asList(ratio.component1().toString(), ratio.component2().toString());
     }
 
     @JsonSetter("ratio")
-    public void setRatio(List<BigInteger> ratio) {
+    public void setRatio(List<String> ratio) {
         if (ratio == null || ratio.size() != 2) {
             throw new IllegalArgumentException("Incorrect amount of ratio");
         }
-        this.ratio = new Tuple2<>(ratio.get(0), ratio.get(1));
+        this.ratio = new Tuple2<>(new BigInteger(ratio.get(0)), new BigInteger(ratio.get(1)));
     }
 
     @JsonGetter("amount")
-    public String getAmountSrting() {
+    public String getAmountString() {
         return amount.toString();
     }
 
     @JsonSetter("amount")
-    public void getAmountSrting(String amount) {
+    public void setAmountString(String amount) {
         this.amount = new BigInteger(amount);
     }
 
