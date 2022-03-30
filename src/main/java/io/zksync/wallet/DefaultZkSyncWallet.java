@@ -302,7 +302,7 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
     }
 
     @SneakyThrows
-    private SignedTransaction<ChangePubKey<A>> buildSignedChangePubKeyTx(TransactionFee fee, Integer nonce,
+    public SignedTransaction<ChangePubKey<A>> buildSignedChangePubKeyTx(TransactionFee fee, Integer nonce,
         TimeRange timeRange) {
         if (zkSigner == null) {
             throw new Error("ZKSync signer is required for current pubkey calculation.");
@@ -326,7 +326,7 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
     }
 
     @SneakyThrows
-    private SignedTransaction<ChangePubKey<ChangePubKeyOnchain>> buildSignedChangePubKeyTxOnchain(TransactionFee fee, Integer nonce,
+    public SignedTransaction<ChangePubKey<ChangePubKeyOnchain>> buildSignedChangePubKeyTxOnchain(TransactionFee fee, Integer nonce,
         TimeRange timeRange) {
         if (zkSigner == null) {
             throw new Error("ZKSync signer is required for current pubkey calculation.");
@@ -350,7 +350,7 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
     }
 
     @SneakyThrows
-    private SignedTransaction<Transfer> buildSignedTransferTx(String to,
+    public SignedTransaction<Transfer> buildSignedTransferTx(String to,
                                                               String tokenIdentifier,
                                                               BigInteger amount,
                                                               BigInteger fee,
@@ -383,7 +383,7 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
     }
 
     @SneakyThrows
-    private SignedTransaction<Withdraw> buildSignedWithdrawTx(String to, String tokenIdentifier, BigInteger amount, BigInteger fee, Integer nonce, TimeRange timeRange) {
+    public SignedTransaction<Withdraw> buildSignedWithdrawTx(String to, String tokenIdentifier, BigInteger amount, BigInteger fee, Integer nonce, TimeRange timeRange) {
         if (zkSigner == null) {
             throw new Error("ZKSync signer is required for current pubkey calculation.");
         }
@@ -411,7 +411,7 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
     }
 
     @SneakyThrows
-    private SignedTransaction<ForcedExit> buildSignedForcedExitTx(String target,
+    public SignedTransaction<ForcedExit> buildSignedForcedExitTx(String target,
                                                                 String tokenIdentifier,
                                                                 BigInteger fee,
                                                                 Integer nonce,
@@ -440,7 +440,7 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
     }
 
     @SneakyThrows
-    private SignedTransaction<MintNFT> buildSignedMintNFTTx(String to, String contentHash, String tokenIdentifier, BigInteger fee, Integer nonce) {
+    public SignedTransaction<MintNFT> buildSignedMintNFTTx(String to, String contentHash, String tokenIdentifier, BigInteger fee, Integer nonce) {
         if (zkSigner == null) {
             throw new Error("ZKSync signer is required for current pubkey calculation.");
         }
@@ -466,7 +466,7 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
     }
 
     @SneakyThrows
-    private SignedTransaction<WithdrawNFT> buildSignedWithdrawNFTTx(String to, NFT token, String tokenIdentifier, BigInteger fee, Integer nonce, TimeRange timeRange) {
+    public SignedTransaction<WithdrawNFT> buildSignedWithdrawNFTTx(String to, NFT token, String tokenIdentifier, BigInteger fee, Integer nonce, TimeRange timeRange) {
         if (zkSigner == null) {
             throw new Error("ZKSync signer is required for current pubkey calculation.");
         }
@@ -493,7 +493,7 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
     }
 
     @SneakyThrows
-    private SignedTransaction<Swap> buildSignedSwapTx(Order order1, Order order2, BigInteger amount1, BigInteger amount2, String tokenIdentifier, BigInteger fee, Integer nonce) {
+    public SignedTransaction<Swap> buildSignedSwapTx(Order order1, Order order2, BigInteger amount1, BigInteger amount2, String tokenIdentifier, BigInteger fee, Integer nonce) {
         if (zkSigner == null) {
             throw new Error("ZKSync signer is required for current pubkey calculation.");
         }
@@ -517,13 +517,13 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
         return new SignedTransaction<>(zkSigner.signSwap(swap), ethSignature);
     }
 
-    private String submitSignedTransaction(ZkSyncTransaction signedTransaction,
+    public String submitSignedTransaction(ZkSyncTransaction signedTransaction,
                                          EthSignature ethereumSignature,
                                          boolean fastProcessing) {
         return provider.submitTx(signedTransaction, ethereumSignature, fastProcessing);
     }
 
-    private String submitSignedTransaction(ZkSyncTransaction signedTransaction,
+    public String submitSignedTransaction(ZkSyncTransaction signedTransaction,
                                          EthSignature ...ethereumSignature) {
         if (ethereumSignature == null || ethereumSignature.length == 0) {
             return provider.submitTx(signedTransaction, null, false);
@@ -534,14 +534,14 @@ public class DefaultZkSyncWallet<A extends ChangePubKeyVariant, S extends EthSig
         }
     }
 
-    private List<String> submitSignedBatch(List<ZkSyncTransaction> transactions, EthSignature ethereumSignature) {
+    public List<String> submitSignedBatch(List<ZkSyncTransaction> transactions, EthSignature ethereumSignature) {
         return provider.submitTxBatch(
             transactions.stream().map(tx -> Pair.of(tx, (EthSignature) null)).collect(Collectors.toList()),
             ethereumSignature
         );
     }
 
-    private Integer getNonce() {
+    public Integer getNonce() {
         return getState().getCommitted().getNonce();
     }
 
