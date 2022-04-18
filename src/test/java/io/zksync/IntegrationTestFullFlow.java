@@ -51,7 +51,7 @@ import io.zksync.wallet.ZkSyncWallet;
 public class IntegrationTestFullFlow {
 
     private static final SecureRandom rand = new SecureRandom();
-
+    private static final String RECEIVER_ADDRESS = "0x4F6071Dbd5818473EEEF6CE563e66bf22618d8c0";
     private static final String PRIVATE_KEY = "{{ethereum_private_key}}";
     private static final Token ETHEREUM_COIN = Token.createETH();
 
@@ -132,13 +132,13 @@ public class IntegrationTestFullFlow {
         TransactionFeeDetails details = wallet.getProvider().getTransactionFee(
             TransactionFeeRequest.builder()
                 .transactionType(TransactionType.TRANSFER)
-                .address("0x4F6071Dbd5818473EEEF6CE563e66bf22618d8c0".toLowerCase())
+                .address(RECEIVER_ADDRESS.toLowerCase())
                 .tokenIdentifier(ETHEREUM_COIN.getAddress())
                 .build()
         );
         TransactionFee fee = new TransactionFee(ETHEREUM_COIN.getAddress(), details.getTotalFeeInteger());
         String hash = wallet.syncTransfer(
-            "0x4F6071Dbd5818473EEEF6CE563e66bf22618d8c0".toLowerCase(),
+                RECEIVER_ADDRESS.toLowerCase(),
             Convert.toWei(BigDecimal.valueOf(1000000), Unit.GWEI).toBigInteger(),
             fee,
             state.getCommitted().getNonce(),
