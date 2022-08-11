@@ -167,21 +167,22 @@ public interface AsyncProvider {
      * @return ZkSync provider object
      */
     static AsyncProvider defaultProvider(ChainId chainId) {
-        HttpTransport transport = null;
+        HttpTransport transport;
         switch (chainId) {
             case Mainnet: transport = new HttpTransport("https://api.zksync.io/jsrpc"); break;
-            case Rinkeby: transport = new HttpTransport("https://rinkeby-api.zksync.io/jsrpc"); break;
-            case Ropsten: transport = new HttpTransport("https://ropsten-api.zksync.io/jsrpc"); break;
+            case Sepolia: transport = new HttpTransport("https://sepolia-api.zksync.io/jsrpc"); break;
+            case Goerli: transport = new HttpTransport("https://goerli-api.zksync.io/jsrpc"); break;
             case Localhost: transport = new HttpTransport("http://127.0.0.1:3030"); break;
+            default: throw new IllegalArgumentException("Unsupported beta network for given chain id");
         }
         return new DefaultAsyncProvider(transport);
     }
 
     static AsyncProvider betaProvider(ChainId chainId) {
-        HttpTransport transport = null;
+        HttpTransport transport;
         switch (chainId) {
-            case Rinkeby: transport = new HttpTransport("https://rinkeby-beta-api.zksync.io/jsrpc"); break;
-            case Ropsten: transport = new HttpTransport("https://ropsten-beta-api.zksync.io/jsrpc"); break;
+            case Sepolia: transport = new HttpTransport("https://sepolia-api.zksync.io/jsrpc"); break;
+            case Goerli: transport = new HttpTransport("https://goerli-api.zksync.io/jsrpc"); break;
             default: throw new IllegalArgumentException("Unsupported beta network for given chain id");
         }
         return new DefaultAsyncProvider(transport);
