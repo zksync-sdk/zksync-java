@@ -10,8 +10,8 @@ public enum ChainId {
     Rinkeby(4),
     /// Ethereum Ropsten testnet.
     Ropsten(3),
-    /// Optimism Goerli Testnet
-    Goerli(420),
+    /// Goerli Testnet
+    Goerli(5),
     /// Ethereum Sepolia Testnet
     Sepolia(11155111),
 
